@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>店雷达 1688 选品工作台 · 原型说明（PRD）</title>
+  <style>
+    :root {
+      --page-bg: #FFFFFF;
+      --page-surface: #F6F9F7;
+      --page-surface-muted: #EDF3EF;
+      --page-text: #1D2722;
+      --page-text-secondary: #3F4C45;
+      --page-text-muted: #67756D;
+      --page-border: #D8E2DC;
+      --page-brand: #00873C;
+      --page-brand-hover: #006C30;
+      --page-brand-soft: #EDF6F0;
+      --page-brand-soft-strong: #DCEDE2;
+      --page-brand-text: #075C33;
+      --success: #52C41A;
+      --reminder: #FF7A45;
+      --warning: #FAAD14;
+      --danger: #D4380D;
+      --code-bg: #F3F7F4;
+      --code-border: #DCE7E0;
+      --code-ink: #22332B;
+      --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+      --space-5: 24px; --space-6: 32px; --space-7: 48px; --space-8: 64px;
+      --radius-sm: 4px; --radius-md: 8px; --radius-lg: 12px; --radius-pill: 999px;
+      --font-sans: -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      --font-mono: 'Cascadia Code', Consolas, 'JetBrains Mono', monospace;
+      --max: 1080px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-sans); font-size: 15px; line-height: 1.75;
+      color: var(--page-text); background: var(--page-bg);
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--page-brand); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* === Intro === */
+    .report-intro { margin-bottom: var(--space-7); }
+    .report-intro__surface {
+      position: relative; overflow: hidden; border-radius: var(--radius-lg);
+      padding: var(--space-7);
+      color: var(--page-brand-text);
+      background: linear-gradient(135deg, var(--page-brand-soft) 0%, var(--page-brand-soft-strong) 100%);
+    }
+    .report-intro__surface::before {
+      content: ""; position: absolute; z-index: 0; pointer-events: none;
+      width: 180px; height: 180px; top: -72px; right: -48px; border-radius: 50%;
+      background: var(--page-brand-soft-strong); opacity: 0.72;
+    }
+    .report-intro__content { position: relative; z-index: 1; max-width: 760px; }
+    .report-intro h1 { font-size: 1.9rem; line-height: 1.25; }
+    .report-intro__summary { margin-top: var(--space-3); color: var(--page-text-secondary); max-width: 70ch; }
+    .report-intro__meta {
+      margin-top: var(--space-4); display: flex; flex-wrap: wrap; gap: var(--space-2);
+      font-size: 0.85rem; color: var(--page-text-muted);
+    }
+    .report-intro__meta span {
+      background: rgba(255,255,255,.6); padding: 2px 10px; border-radius: var(--radius-pill);
+    }
+
+    /* === Layout === */
+    .page__content { max-width: var(--max); margin: 0 auto; padding: 0 var(--space-4); }
+    main { padding-bottom: var(--space-8); }
+    section { margin-bottom: var(--space-7); scroll-margin-top: var(--space-5); }
+    h2 {
+      font-size: 1.45rem; color: var(--page-brand); margin-bottom: var(--space-3);
+      padding-bottom: var(--space-2); border-bottom: 2px solid var(--page-brand-soft-strong);
+    }
+    h3 { font-size: 1.15rem; color: var(--page-text); margin: var(--space-4) 0 var(--space-2); }
+    h4 { font-size: 1rem; color: var(--page-text-secondary); margin: var(--space-3) 0 var(--space-2); }
+    p { margin-bottom: var(--space-3); }
+    ul, ol { margin: 0 0 var(--space-3) var(--space-5); }
+    li { margin-bottom: var(--space-1); }
+
+    /* === TOC === */
+    /* === 顶部固定导航栏目录 === */
+    .toc {
+      position: sticky; top: 0; z-index: 50;
+      background: var(--page-surface);
+      border: 1px solid var(--page-border);
+      border-radius: var(--radius-md);
+      padding: var(--space-2) var(--space-3);
+      margin: 0 0 var(--space-5);
+      display: flex; align-items: center; gap: var(--space-3);
+      box-shadow: 0 2px 10px rgba(29,39,34,0.06);
+    }
+    .toc h2 {
+      border: none; margin: 0; padding: 0 var(--space-3) 0 0;
+      font-size: 0.9rem; white-space: nowrap; color: var(--page-brand);
+      border-right: 1px solid var(--page-border); flex-shrink: 0;
+    }
+    .toc ol {
+      list-style: none; margin: 0; padding: 0;
+      display: flex; gap: var(--space-1); overflow-x: auto; flex: 1;
+      scrollbar-width: thin; scrollbar-color: var(--page-border) transparent;
+    }
+    .toc ol::-webkit-scrollbar { height: 4px; }
+    .toc ol::-webkit-scrollbar-thumb { background: var(--page-border); border-radius: 2px; }
+    .toc li { margin: 0; white-space: nowrap; flex-shrink: 0; }
+    .toc a {
+      display: inline-block; padding: var(--space-1) var(--space-3);
+      border-radius: var(--radius-pill); font-size: 0.85rem;
+      color: var(--page-text); white-space: nowrap; text-decoration: none;
+      transition: background .15s, color .15s;
+    }
+    .toc a:hover { background: var(--page-brand-soft); color: var(--page-brand); }
+
+    /* === Tables === */
+    .table-wrap { width: 100%; overflow-x: auto; margin: var(--space-3) 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th, td {
+      padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--page-border);
+      text-align: left; vertical-align: top; overflow-wrap: anywhere;
+    }
+    th { background: var(--page-surface-muted); font-weight: 600; color: var(--page-text-secondary); }
+    tr:hover td { background: var(--page-surface); }
+
+    /* === Code === */
+    code {
+      font-family: var(--font-mono); font-size: 0.85em;
+      background: var(--code-bg); padding: 1px 6px; border-radius: var(--radius-sm);
+      color: var(--code-ink);
+    }
+    pre {
+      background: var(--code-bg); border: 1px solid var(--code-border); border-radius: var(--radius-md);
+      padding: var(--space-3); overflow-x: auto; margin: var(--space-3) 0;
+    }
+    pre code { background: none; padding: 0; font-size: 0.85rem; line-height: 1.6; }
+
+    /* === Demo frame === */
+    .demo {
+      border: 1px solid var(--page-border); border-radius: var(--radius-md);
+      margin: var(--space-4) 0; overflow: hidden; background: var(--page-surface);
+    }
+    .demo__bar {
+      display: flex; align-items: center; gap: var(--space-2);
+      padding: var(--space-2) var(--space-3); background: var(--page-surface-muted);
+      border-bottom: 1px solid var(--page-border); font-size: 0.82rem; color: var(--page-text-muted);
+    }
+    .demo__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--page-border); }
+    .demo__dot--r { background: #FF6B5C; }
+    .demo__dot--y { background: #FFC44D; }
+    .demo__dot--g { background: #4DD07A; }
+    .demo__body { padding: var(--space-4); }
+
+    /* === Mini prototype styles (for demo content) === */
+    .pt-root { display: flex; gap: var(--space-3); min-height: 320px; font-size: 0.82rem; }
+    .pt-col { flex: 1; border: 1px dashed var(--page-border); border-radius: var(--radius-sm); padding: var(--space-2); background: #fff; }
+    .pt-col--narrow { flex: 0 0 180px; }
+    .pt-col--wide { flex: 2; }
+    .pt-col h5 { font-size: 0.78rem; color: var(--page-text-muted); margin-bottom: var(--space-2); text-transform: uppercase; letter-spacing: 0.05em; }
+    .pt-conv-item {
+      padding: var(--space-2); border-radius: var(--radius-sm); margin-bottom: var(--space-1);
+      cursor: pointer; font-size: 0.8rem;
+    }
+    .pt-conv-item:hover { background: var(--page-surface); }
+    .pt-conv-item--active { background: var(--page-brand-soft); color: var(--page-brand-text); font-weight: 600; }
+    .pt-conv-item--running { background: var(--page-brand-soft); position: relative; }
+    .pt-conv-item--running::before {
+      content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+      background: var(--page-brand); animation: pt-pulse 1.4s ease-in-out infinite;
+    }
+    @keyframes pt-pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+    .pt-msg-user { background: var(--page-brand-soft); color: var(--page-brand-text); padding: var(--space-2); border-radius: var(--radius-sm); margin-bottom: var(--space-2); align-self: flex-end; max-width: 80%; margin-left: auto; }
+    .pt-msg-ai { background: var(--page-surface); padding: var(--space-2); border-radius: var(--radius-sm); margin-bottom: var(--space-2); max-width: 90%; }
+    .pt-chat { display: flex; flex-direction: column; gap: 2px; }
+    .pt-input-row { display: flex; gap: var(--space-2); margin-top: var(--space-3); }
+    .pt-input { flex: 1; border: 1px solid var(--page-border); border-radius: var(--radius-sm); padding: 6px 8px; font-size: 0.8rem; }
+    .pt-btn {
+      background: var(--page-brand); color: #fff; border: none; border-radius: var(--radius-sm);
+      padding: 6px 12px; font-size: 0.8rem; cursor: pointer;
+    }
+    .pt-btn:hover { background: var(--page-brand-hover); }
+    .pt-btn--ghost { background: transparent; color: var(--page-brand); border: 1px solid var(--page-brand); }
+    .pt-tag {
+      display: inline-block; background: var(--page-brand-soft); color: var(--page-brand-text);
+      padding: 1px 8px; border-radius: var(--radius-pill); font-size: 0.72rem; margin: 1px;
+    }
+    .pt-node { font-size: 0.76rem; color: var(--page-text-secondary); padding: 2px 0; }
+    .pt-node::before { content: "→ "; color: var(--page-brand); }
+    .pt-table { width: 100%; font-size: 0.72rem; }
+    .pt-table th, .pt-table td { padding: 3px 5px; border-bottom: 1px solid var(--page-border); }
+    .pt-card {
+      border: 1px solid var(--page-border); border-radius: var(--radius-sm); padding: var(--space-2);
+      margin-bottom: var(--space-2); display: flex; gap: var(--space-2); font-size: 0.76rem;
+    }
+    .pt-card-img { width: 40px; height: 40px; background: var(--page-surface-muted); border-radius: var(--radius-sm); flex-shrink: 0; }
+    .pt-card-main { flex: 1; }
+    .pt-card-row { display: flex; justify-content: space-between; margin-bottom: 2px; }
+    .pt-card-price { color: var(--danger); font-weight: 600; }
+    .pt-tab-row { display: flex; gap: var(--space-1); margin-bottom: var(--space-2); border-bottom: 1px solid var(--page-border); }
+    .pt-tab { padding: 4px 10px; font-size: 0.78rem; cursor: pointer; border-bottom: 2px solid transparent; color: var(--page-text-muted); }
+    .pt-tab--active { color: var(--page-brand); border-bottom-color: var(--page-brand); font-weight: 600; }
+    .pt-badge {
+      display: inline-block; padding: 1px 6px; border-radius: var(--radius-sm); font-size: 0.68rem;
+      background: var(--page-brand-soft); color: var(--page-brand-text);
+    }
+    .pt-badge--orange { background: linear-gradient(135deg,#ffb84d,#fa8c16); color: #fff; font-weight: 700; }
+    .pt-badge--blue { background: #E6F0FA; color: #1A5FB4; }
+    .pt-meter { height: 6px; background: var(--page-border); border-radius: var(--radius-pill); overflow: hidden; margin-top: 4px; }
+    .pt-meter__fill { height: 100%; background: var(--page-brand); width: 42%; }
+    .pt-skel { background: var(--page-surface); border-radius: var(--radius-sm); height: 10px; margin-bottom: 4px; }
+    .pt-skel--w70 { width: 70%; }
+    .pt-skel--w50 { width: 50%; }
+    .pt-skel--w90 { width: 90%; }
+    @keyframes pt-shimmer { 0%{background-position:-200px 0} 100%{background-position:200px 0} }
+    .pt-skel-on {
+      background: linear-gradient(90deg, var(--page-surface) 25%, var(--page-surface-muted) 50%, var(--page-surface) 75%);
+      background-size: 400px 100%; animation: pt-shimmer 1.5s linear infinite;
+    }
+
+    /* === Test checklist === */
+    .checklist { list-style: none; margin-left: 0; }
+    .checklist li { padding-left: 1.4em; position: relative; margin-bottom: var(--space-2); }
+    .checklist li::before {
+      content: "☐"; position: absolute; left: 0; color: var(--page-brand); font-weight: 700;
+    }
+
+    /* === Callout === */
+    .callout {
+      border-left: 3px solid var(--page-brand); background: var(--page-brand-soft);
+      padding: var(--space-3) var(--space-4); margin: var(--space-3) 0; border-radius: 0 var(--radius-md) var(--radius-md) 0;
+      font-size: 0.9rem;
+    }
+    .callout--warn { border-left-color: var(--warning); background: #FFFBE6; }
+    .callout--danger { border-left-color: var(--danger); background: #FFF2F0; }
+
+    /* === 业务逻辑流程图 === */
+    .logic-map { border: 1px solid var(--page-border); border-radius: var(--radius-lg); background: var(--page-surface); padding: 24px; margin: 16px 0 24px; }
+    .logic-step { max-width: 680px; margin: 0 auto; padding: 12px 18px; border: 1px solid var(--page-border); border-radius: var(--radius-md); background: #fff; text-align: center; }
+    .logic-step strong { display: block; color: var(--page-brand-text); }
+    .logic-step small { display: block; color: var(--page-text-secondary); font-size: .82rem; }
+    .logic-step--key { border-color: var(--page-brand); background: var(--page-brand-soft); }
+    .logic-step--warn { border-color: var(--warning); background: #FFFBE6; }
+    .logic-arrow { text-align: center; color: var(--page-brand); padding: 5px 0; font-size: 20px; line-height: 1.4; }
+    .logic-branches { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+    .logic-branches--three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .logic-label { text-align: center; font-size: .82rem; color: var(--page-text-muted); margin: 0 0 6px; }
+    .logic-note { margin: 16px 0 0; font-size: .85rem; color: var(--page-text-secondary); }
+    #flow, #flow ~ section { scroll-margin-top: 88px; }
+    @media (max-width: 700px) { .logic-map { padding: 16px; } .logic-branches, .logic-branches--three { grid-template-columns: 1fr; } }
+
+    /* === Footer === */
+    footer { border-top: 2px solid var(--page-brand-soft-strong); padding-top: var(--space-4); color: var(--page-text-muted); font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+  <article class="page">
+    <header class="report-intro">
+      <div class="report-intro__surface">
+        <div class="report-intro__content">
+          <h1>店雷达 1688 选品工作台 · 原型说明</h1>
+          <p class="report-intro__summary">
+            本文档面向前端、后端与测试，覆盖工作台当前全部功能模块。每个模块包含原型 Demo、业务逻辑和测试要点，
+            供前后端对接与测试验收直接使用。
+          </p>
+          <div class="report-intro__meta">
+            <span>版本：当前线上</span>
+            <span>维护：店雷达 PM</span>
+            <span>更新：2026-10-09</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="page__content">
+      <nav class="toc">
+        <h2>目录</h2>
+        <ol>
+          <li><a href="#bg">背景</a></li>
+          <li><a href="#flow">逻辑流程图</a></li>
+          <li><a href="#m1">对话提问</a></li>
+          <li><a href="#m2">选品检索</a></li>
+          <li><a href="#m3">商品表格</a></li>
+          <li><a href="#m4">报告生成</a></li>
+          <li><a href="#m5">报告预览</a></li>
+          <li><a href="#m6">刷新恢复</a></li>
+          <li><a href="#m7">会话管理</a></li>
+          <li><a href="#m8">积分用量</a></li>
+          <li><a href="#m9">账号隔离</a></li>
+          <li><a href="#m10">购买充值</a></li>
+          <li><a href="#m11">明细记录</a></li>
+          <li><a href="#edge">已知边界</a></li>
+        </ol>
+      </nav>
+
+      <main>
+        <section id="bg">
+          <h2>需求背景</h2>
+          <p>
+            店雷达 1688 选品工作台是一个面向电商选品场景的单页应用，用户通过自然语言对话即可完成 1688 商品检索、
+            结果对比、报告生成与预览。当前版本已跑通核心链路，需要前后端正式对接、测试覆盖。
+          </p>
+          <p>
+            主要痛点：选品人员过去需要手动在 1688 多个页面来回切换、筛选、复制商品信息到表格，效率低且易遗漏。
+            工作台通过 AI 对话 + SSE 流式检索 + 结果信封，将选品流程收敛为一次提问。
+          </p>
+          <div class="callout">
+            <strong>阅读对象：</strong>前端（对接接口与渲染）、后端（接口实现与 SSE 协议）、测试（功能验收与回归）。
+            接口字段详情请配合 <code>docs/前端对接文档/前端对接文档.html</code> 使用。
+          </div>
+        </section>
+
+        <!-- ==================== 业务逻辑流程图 ==================== -->
+        <section id="flow" aria-labelledby="flow-title">
+          <h2 id="flow-title">业务逻辑流程图</h2>
+          <p>按选品、积分、购买与账号权限分别展示关键判断和处理结果；详细交互与验收规则见下方对应模块。</p>
+
+          <h3>选品主流程 · 提问 → 检索 → 结果 → 历史恢复</h3>
+          <div class="logic-map" role="group" aria-label="选品主流程">
+            <div class="logic-step"><strong>进入工作台，加载当前账号数据</strong><small>会话列表、共享积分余额、当前会话的商品和报告</small></div>
+            <div class="logic-arrow" aria-hidden="true">↓</div>
+            <div class="logic-step"><strong>新建对话或选择历史会话 → 输入问题</strong><small>空内容禁止发送；追问沿用同一会话 ID</small></div>
+            <div class="logic-arrow" aria-hidden="true">↓</div>
+            <div class="logic-step logic-step--key"><strong>校验新消耗权限与余额</strong><small>余额 ≤ 0 时进入下方「积分判断」拦截分支；允许时继续</small></div>
+            <div class="logic-arrow" aria-hidden="true">↓</div>
+            <div class="logic-step"><strong>启动 SSE → 解析需求 → 检索商品 → 分析结果</strong><small>展示有效节点与增量回答；运行期间禁用发送，允许停止</small></div>
+            <div class="logic-arrow" aria-hidden="true">↓ 按返回内容分别处理</div>
+            <div class="logic-branches logic-branches--three">
+              <div><p class="logic-label">返回商品 / 报告</p><div class="logic-step logic-step--key"><strong>展示结构化结果</strong><small>商品完成即注册表格标签；有报告地址则加载报告；两者可共存，不抢报告焦点</small></div></div>
+              <div><p class="logic-label">澄清问题 / 纯文本</p><div class="logic-step"><strong>展示 AI 回答</strong><small>保留上次结果；用户可继续追问，不将澄清判定为失败</small></div></div>
+              <div><p class="logic-label">停止 / 错误 / 超时</p><div class="logic-step logic-step--warn"><strong>结束当前运行，恢复输入</strong><small>停止时保留已生成片段；错误显示原因；失败已预扣积分按模块八退回</small></div></div>
+            </div>
+            <div class="logic-arrow" aria-hidden="true">↓ 正常完成</div>
+            <div class="logic-step"><strong>结算积分，保存本轮消息、商品与报告</strong><small>刷新用量；支持商品筛选、排序和导出；另行生成报告时重新校验新消耗权限</small></div>
+            <div class="logic-arrow" aria-hidden="true">↓</div>
+            <div class="logic-step"><strong>追问 / 切换会话 / 刷新恢复</strong><small>追问回到发送校验；切换与刷新恢复对应账号、会话的消息及结果标签</small></div>
+          </div>
+
+          <h3>积分判断 · 开始时校验，本轮允许跑完</h3>
+          <div class="logic-map" role="group" aria-label="积分判断与结算流程">
+            <div class="logic-step logic-step--key"><strong>发起新对话、追问或报告生成</strong><small>读取共享积分池的内部余额</small></div>
+            <div class="logic-arrow" aria-hidden="true">↓ 余额判断</div>
+            <div class="logic-branches">
+              <div><p class="logic-label">余额 &gt; 0</p><div class="logic-step"><strong>允许开始</strong><small>普通对话本轮跑完，途中用完仍可完成</small></div><div class="logic-arrow" aria-hidden="true">↓</div><div class="logic-step"><strong>正常完成后结算实际消耗</strong><small>输入与输出 token 总数 × 0.002，保留两位小数；写入消耗明细、刷新余额</small></div><div class="logic-arrow" aria-hidden="true">↓</div><div class="logic-step"><strong>内部允许负数记账</strong><small>前台余额最低显示 0；余额 ≤ 0 显示「已用完」，下次新消耗进入拦截分支</small></div></div>
+              <div><p class="logic-label">余额 ≤ 0</p><div class="logic-step logic-step--warn"><strong>拦截一切新消耗</strong><small>提示「积分已用完，请充值」</small></div><div class="logic-arrow" aria-hidden="true">↓</div><div class="logic-step"><strong>历史数据仍可查看</strong><small>会话记录、商品表格与报告预览保持可访问</small></div><div class="logic-arrow" aria-hidden="true">↓</div><div class="logic-step"><strong>充值到账后重新读取余额</strong><small>余额恢复为正数时，允许再次发起新消耗</small></div></div>
+            </div>
+            <p class="logic-note">计费公式供前后端对接使用，用户界面仅展示积分。单轮 100 积分封顶为可选方案，不作为本流程的默认规则。</p>
+          </div>
+
+          <h3>购买与到账 · 套餐选择、订单支付、充值明细分别处理</h3>
+          <div class="logic-map" role="group" aria-label="购买与充值流程">
+            <div class="logic-step"><strong>打开积分中心 → 查看可购买套餐</strong><small>套餐是购买选项：名称、价格、积分数量和有效期</small></div>
+            <div class="logic-arrow" aria-hidden="true">↓ 选择套餐，点击立即购买</div>
+            <div class="logic-step"><strong>确认套餐、积分数量与支付金额</strong><small>仅查看或选择套餐，不代表已产生充值</small></div>
+            <div class="logic-arrow" aria-hidden="true">↓ 确认支付</div>
+            <div class="logic-step logic-step--key"><strong>进入订单支付流程</strong><small>订单是本次交易记录：关联所选套餐，记录订单号、金额与支付状态</small></div>
+            <div class="logic-arrow" aria-hidden="true">↓ 支付结果</div>
+            <div class="logic-branches">
+              <div><p class="logic-label">确认支付成功</p><div class="logic-step logic-step--key"><strong>积分到账 → 更新共享余额</strong><small>新增充值明细，包含订单号、套餐、到账积分与时间；恢复可用状态</small></div></div>
+              <div><p class="logic-label">未支付成功 / 取消</p><div class="logic-step logic-step--warn"><strong>积分不增加</strong><small>不写入成功充值明细；用户可再次进入购买流程</small></div></div>
+            </div>
+            <p class="logic-note">当前购买和流水为前端演示，正式支付及流水接口待接入。套餐定价以模块八确认方案为准，模块十的三档价格为演示数据；套餐、订单与充值明细是不同对象。</p>
+          </div>
+
+          <h3>账号切换 · 权限决定可见数据，积分池共享</h3>
+          <div class="logic-map" role="group" aria-label="主子账号权限与数据切换流程">
+            <div class="logic-step"><strong>登录或选择目标账号</strong><small>读取登录身份、账号关系与子账号互看设置</small></div>
+            <div class="logic-arrow" aria-hidden="true">↓ 校验查看权限</div>
+            <div class="logic-branches logic-branches--three">
+              <div><p class="logic-label">主账号</p><div class="logic-step"><strong>可查看主账号及其子账号</strong><small>可进入子账号设置</small></div></div>
+              <div><p class="logic-label">子账号 · 互看开启</p><div class="logic-step"><strong>按互看权限切换子账号</strong><small>加载获准查看的目标账号数据</small></div></div>
+              <div><p class="logic-label">子账号 · 互看关闭</p><div class="logic-step logic-step--warn"><strong>仅查看自身数据</strong><small>不允许查看其他账号；不允许访问主账号设置</small></div></div>
+            </div>
+            <div class="logic-arrow" aria-hidden="true">↓ 权限通过</div>
+            <div class="logic-step logic-step--key"><strong>按目标账号加载会话、商品和报告</strong><small>缓存按账号隔离；无权限的切换不加载目标数据</small></div>
+            <div class="logic-arrow" aria-hidden="true">↓</div>
+            <div class="logic-step"><strong>继续查看或发起对话</strong><small>主子账号共享积分池，切换不重置余额；新消耗仍执行积分校验</small></div>
+          </div>
+        </section>
+
+        <!-- ==================== 模块一 ==================== -->
+        <section id="m1">
+          <h2>模块一 · 对话提问区</h2>
+
+          <h3>原型 Demo</h3>
+          <div class="demo">
+            <div class="demo__bar">
+              <span class="demo__dot demo__dot--r"></span><span class="demo__dot demo__dot--y"></span><span class="demo__dot demo__dot--g"></span>
+              <span>对话提问区 · 左会话列表 / 中聊天 / 右结果</span>
+            </div>
+            <div class="demo__body">
+              <div class="pt-root">
+                <div class="pt-col pt-col--narrow">
+                  <h5>会话列表</h5>
+                  <div class="pt-conv-item pt-conv-item--running">新建对话</div>
+                  <div class="pt-conv-item pt-conv-item--active">夏季女装连衣裙选品</div>
+                  <div class="pt-conv-item">3C 数据线爆品筛选</div>
+                  <div class="pt-conv-item">家居收纳盒供应商对比</div>
+                </div>
+                <div class="pt-col pt-col--wide">
+                  <h5>聊天区</h5>
+                  <div class="pt-chat">
+                    <div class="pt-msg-user">帮我找夏季女装连衣裙，价格 20-50 元，起批量小于 100</div>
+                    <div class="pt-msg-ai">正在解析选品需求…关键词：连衣裙、夏季；价格区间 20-50 元；起批量 ≤100</div>
+                  </div>
+                  <div class="pt-input-row">
+                    <input class="pt-input" placeholder="输入追问，如：按 30 天销量降序" />
+                    <button class="pt-btn">发送</button>
+                  </div>
+                  <div style="margin-top:8px;">
+                    <span class="pt-tag" style="background:var(--page-brand-soft);color:var(--page-brand-text);">DeepSeek V4.1 Flash</span>
+                    <span style="font-size:0.7rem;color:var(--page-text-muted);">当前模型（固定，不可切换）</span>
+                  </div>
+                </div>
+                <div class="pt-col">
+                  <h5>结果区（标签页）</h5>
+                  <div class="pt-tab-row">
+                    <span class="pt-tab pt-tab--active">报告</span>
+                    <span class="pt-tab">表格 (32)</span>
+                  </div>
+                  <div class="pt-skel pt-skel--w90 pt-skel-on"></div>
+                  <div class="pt-skel pt-skel--w70 pt-skel-on"></div>
+                  <div class="pt-skel pt-skel--w50 pt-skel-on"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <h3>业务逻辑</h3>
+          <table>
+            <thead><tr><th width="28%">交互点</th><th>规则</th></tr></thead>
+            <tbody>
+              <tr><td>输入框</td><td>支持多行；<code>Enter</code> 发送，<code>Shift+Enter</code> 换行；空内容禁止发送并禁用发送按钮</td></tr>
+              <tr><td>当前模型</td><td>固定使用 <code>DeepSeek V4.1 Flash</code>，<strong>用户不可切换</strong>；积分按模块八公式扣减（token × 0.002）</td></tr>
+              <tr><td>建议问题</td><td>从 <code>messageSuggestions</code> 接口拉取，点击即填入输入框；首次进入空会话时展示 3 条默认建议</td></tr>
+              <tr><td>发送行为</td><td>点击发送后进入 SSE 流式（见模块二）；流式期间输入框与发送按钮置灰，底部出现「停止」按钮</td></tr>
+              <tr><td>停止运行</td><td>点击「停止」调用 <code>stopRun</code> 中断当前流；已生成片段保留，不回滚</td></tr>
+              <tr><td>追问</td><td>在同一会话内继续提问，携带同一 <code>conversation_id</code>，上下文继承（解决追问时品类丢失问题）</td></tr>
+            </tbody>
+          </table>
+
+          <h3>测试要点</h3>
+          <ul class="checklist">
+            <li>输入框为空时发送按钮禁用，点击无反应</li>
+            <li>Enter 发送、Shift+Enter 换行行为正确</li>
+            <li>当前模型固定为 DeepSeek V4.1 Flash，界面无切换入口，用户不可选其他模型</li>
+            <li>流式期间输入框与发送按钮置灰，「停止」按钮可点击</li>
+            <li>点击「停止」后已生成内容保留，不闪退</li>
+            <li>追问携带同一会话 ID，上下文不丢失（如追问「按销量降序」时商品品类不变）</li>
+            <li>建议问题点击后正确填入输入框并可编辑</li>
+          </ul>
+        </section>
+
+        <!-- ==================== 模块二 ==================== -->
+        <section id="m2">
+          <h2>模块二 · 选品检索（SSE 流式 + 结果信封）</h2>
+
+          <h3>原型 Demo · 检索过程分析卡</h3>
+          <div class="demo">
+            <div class="demo__bar">
+              <span class="demo__dot demo__dot--r"></span><span class="demo__dot demo__dot--y"></span><span class="demo__dot demo__dot--g"></span>
+              <span>检索过程分析卡（流式输出）</span>
+            </div>
+            <div class="demo__body">
+              <div style="font-size:0.82rem;">
+                <div style="font-weight:600;color:var(--page-brand);margin-bottom:6px;">
+                  <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--page-brand);animation:pt-pulse 1.2s infinite;margin-right:6px;"></span>
+                  正在检索 1688 商品数据…
+                </div>
+                <div style="margin-bottom:6px;">
+                  <span class="pt-tag">连衣裙</span><span class="pt-tag">夏季</span><span class="pt-tag">20-50元</span><span class="pt-tag">起批量≤100</span>
+                </div>
+                <div class="pt-node">解析选品需求：识别关键词、提取价格区间与起批量</div>
+                <div class="pt-node">检索数据：按类目匹配，拉取基础信息与销量</div>
+                <div class="pt-node">分析对比：计算 30 天销量趋势，对比价格区间</div>
+                <div class="pt-node">生成结果：按 30 天销售额降序，生成表格</div>
+              </div>
+            </div>
+          </div>
+
+          <h3>原型 Demo · 结果信封三种形态</h3>
+          <table>
+            <thead><tr><th width="20%">形态</th><th width="30%">触发条件</th><th>前端处理</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>有 obsUrl</td>
+                <td>返回 <code>obsUrl</code> + <code>products</code> + <code>totalCount</code></td>
+                <td>右侧注册「报告」「表格」两个标签；报告 iframe 加载 obsUrl；表格渲染标准化商品</td>
+              </tr>
+              <tr>
+                <td>无 obsUrl + 有回答</td>
+                <td>返回 <code>answer</code> 文本但无 obsUrl（Agent 反问/澄清）</td>
+                <td>不判定为失败；仅展示 AI 回答文本；不注册表格标签</td>
+              </tr>
+              <tr>
+                <td>纯文本</td>
+                <td>仅有 <code>answer</code>，无任何结构化字段</td>
+                <td>聊天区显示文本；右侧保持上次结果或空状态</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>业务逻辑</h3>
+          <h4>SSE 事件协议</h4>
+          <p>接口：<code>POST /api/ai/chat/messages/stream</code>。事件名优先取 JSON 内嵌 <code>event</code> 字段，其次取 SSE <code>event:</code> 行。</p>
+          <table>
+            <thead><tr><th>事件</th><th>说明</th></tr></thead>
+            <tbody>
+              <tr><td><code>workflow_started</code></td><td>工作流开始，携带 <code>conversation_id</code>（前端用于刷新左栏标题）</td></tr>
+              <tr><td><code>node_started</code> / <code>node_finished</code></td><td>工作流节点开始/结束；前端过滤「用户输入」「开始」「结束」等无意义节点，仅展示有价值的检索/分析/生成节点</td></tr>
+              <tr><td><code>message</code></td><td>增量文本片段，追加到聊天区</td></tr>
+              <tr><td><code>workflow_finished</code></td><td>工作流结束；携带最终 JSON 信封（answer/obsUrl/products/totalCount）</td></tr>
+              <tr><td><code>error</code></td><td>错误事件；前端展示错误并恢复输入框</td></tr>
+            </tbody>
+          </table>
+
+          <h4>超时策略</h4>
+          <ul>
+            <li>首包超时 <strong>25 秒</strong>：未收到首个事件即判定失败，提示「检索启动超时，请重试」</li>
+            <li>事件间隔超时 <strong>180 秒</strong>：两个事件之间间隔超过 180 秒判定断流，提示「检索中断，请重试」</li>
+          </ul>
+
+          <h4>检索过程卡展示规则</h4>
+          <ul>
+            <li>顶部显示当前动作标题（带脉冲动画），完成后显示「检索完成，共 X 条符合条件的商品」</li>
+            <li>展示关键词标签（从用户输入解析）</li>
+            <li>仅保留有价值的工作流节点；过滤「用户输入」「开始」「结束」等无意义节点</li>
+            <li>节点文案具体化：解析选品需求（识别关键词、提取价格区间）、检索数据（按类目匹配）、分析对比（计算销量趋势）、生成结果（按指标排序）</li>
+          </ul>
+
+          <h4>AI 回答商品总数替换</h4>
+          <p>AI 回答中如出现「共找到/共有/共返回/共检索到 + 数字 + 件/条/个/款/种」，需用正则匹配并替换为 <code>totalCount</code> 真实数据，确保文案与实际数据一致。</p>
+
+          <div class="callout callout--warn">
+            <strong>关键区分：</strong>前端必须区分「有 obsUrl」和「无 obsUrl + 有回答」两种场景，避免将 Agent 反问误判为失败并清空结果。
+          </div>
+
+          <h3>测试要点</h3>
+          <ul class="checklist">
+            <li>SSE 首包 25 秒内到达，否则触发超时提示</li>
+            <li>事件间隔超过 180 秒触发断流提示</li>
+            <li>检索过程卡只展示有价值节点，无意义节点被过滤</li>
+            <li>有 obsUrl 时右侧同时注册「报告」「表格」标签</li>
+            <li>无 obsUrl + 有回答时，不判定为失败，不清空上次结果</li>
+            <li>AI 回答中的商品总数被替换为 totalCount 真实值</li>
+            <li>workflow_started 事件收到 conversation_id 后左栏标题立即刷新</li>
+            <li>error 事件后输入框恢复可输入状态</li>
+          </ul>
+        </section>
+
+        <!-- ==================== 模块三 ==================== -->
+        <section id="m3">
+          <h2>模块三 · 商品表格（列表/图片模式）</h2>
+
+          <h3>原型 Demo · 列表模式</h3>
+          <div class="demo">
+            <div class="demo__bar">
+              <span class="demo__dot demo__dot--r"></span><span class="demo__dot demo__dot--y"></span><span class="demo__dot demo__dot--g"></span>
+              <span>列表模式 · 右侧表格无空白</span>
+            </div>
+            <div class="demo__body" style="overflow-x:auto;">
+              <table class="pt-table">
+                <thead><tr><th>主图</th><th>标题</th><th>价格</th><th>起批量</th><th>30天订单</th><th>30天销售额</th><th>店铺</th></tr></thead>
+                <tbody>
+                  <tr><td><div style="width:28px;height:28px;background:var(--page-surface-muted);border-radius:4px;"></div></td><td>2024夏季新款法式碎花连衣裙收腰显瘦</td><td class="pt-card-price">¥29.9</td><td>10 件起</td><td>1,234</td><td>¥36,897</td><td><span class="pt-badge pt-badge--orange">👑5年</span> <span class="pt-badge pt-badge--blue">工厂</span></td></tr>
+                  <tr><td><div style="width:28px;height:28px;background:var(--page-surface-muted);border-radius:4px;"></div></td><td>韩系温柔风连衣裙女装夏装雪纺</td><td class="pt-card-price">¥35.5</td><td>20 件起</td><td>987</td><td>¥35,041</td><td><span class="pt-badge pt-badge--orange">👑8年</span> <span class="pt-badge pt-badge--blue">品牌</span></td></tr>
+                  <tr><td><div style="width:28px;height:28px;background:var(--page-surface-muted);border-radius:4px;"></div></td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td><td>--</td></tr>
+                </tbody>
+              </table>
+              <div style="margin-top:8px;display:flex;justify-content:space-between;font-size:0.76rem;color:var(--page-text-muted);">
+                <span>共 32 条 · 第 1/4 页</span>
+                <span>上一页 | 1 2 3 4 | 下一页</span>
+              </div>
+            </div>
+          </div>
+
+          <h3>原型 Demo · 图片模式</h3>
+          <div class="demo">
+            <div class="demo__bar">
+              <span class="demo__dot demo__dot--r"></span><span class="demo__dot demo__dot--y"></span><span class="demo__dot demo__dot--g"></span>
+              <span>图片模式 · 卡片左右布局 · 悬停预览</span>
+            </div>
+            <div class="demo__body">
+              <div class="pt-card">
+                <div class="pt-card-img"></div>
+                <div class="pt-card-main">
+                  <div class="pt-card-row"><span>2024夏季新款法式碎花连衣裙</span><span class="pt-card-price">¥29.9</span></div>
+                  <div class="pt-card-row"><span>10 件起</span><span>30天订单 1,234</span></div>
+                  <div class="pt-card-row"><span>30天件数 12,340</span><span>30天销售额 ¥36,897</span></div>
+                  <div class="pt-card-row"><span>上架 2024-05-12</span><span>复购率 18%</span></div>
+                  <button class="pt-btn pt-btn--ghost" style="margin-top:4px;font-size:0.72rem;">详情 ▾</button>
+                </div>
+              </div>
+              <div style="font-size:0.74rem;color:var(--page-text-muted);">悬停主图时右侧出现约 320×320px 预览图（object-fit: contain），靠近右边时自动向左翻转</div>
+            </div>
+          </div>
+
+          <h3>业务逻辑</h3>
+          <table>
+            <thead><tr><th width="26%">项目</th><th>规则</th></tr></thead>
+            <tbody>
+              <tr><td>字段适配层</td><td>在 <code>loadObsProducts()</code> 解析 obsUrl 数组之后统一标准化；每条商品保留 <code>raw</code> 原始对象方便排查；标准化结果同时用于右侧表格、本地分页、筛选、排序、导出、会话缓存、历史恢复</td></tr>
+              <tr><td>商品链接</td><td>缺失时使用 <code>https://detail.1688.com/offer/{offerId}.html</code> 生成，确保链接有效</td></tr>
+              <tr><td>空值统一</td><td>null/undefined/空字符串/空数组/-1/-1% 统一显示为 <code>--</code></td></tr>
+              <tr><td>列表模式标题</td><td>最多两行折行，末尾省略号截断，悬停显示完整标题</td></tr>
+              <tr><td>列表模式布局</td><td>右侧无空白区域；商品货号、商品标识、卖家服务单行显示，超出宽度省略号，悬停显示完整内容</td></tr>
+              <tr><td>图片模式卡片</td><td>主信息区左右分布：首行价格与起批量、次行 30 天订单与 30 天件数、第三行 30 天销售额、末行上架时间与复购率；点击「详情」整行卡片展开/收起，高度对齐</td></tr>
+              <tr><td>图片预览</td><td>仅悬停当前商品图片时，右侧显示约 320×320px 预览图，<code>object-fit: contain</code>，靠近右边时自动向左翻转</td></tr>
+              <tr><td>店铺徽章</td><td>诚信通年限徽章：橙色渐变底（#ffb84d → #fa8c16）+ 白色粗体 + 👑皇冠；公司类型徽章：蓝色浅底。仅在徽章中视觉化展示，不包含在详情字段</td></tr>
+              <tr><td>商品标识</td><td>仅保留已知商品标签（如新品、1688 严选），排除面单平台代码、卖家服务代码等无关信息</td></tr>
+              <tr><td>分页/筛选/排序</td><td>本地实现，基于标准化后的商品数组；筛选条件组合生效</td></tr>
+              <tr><td>导出</td><td>导出 Excel；店铺 48H 履约率和响应率四舍五入保留整数并展示百分比；主图列宽锁定 12~14 字符；文件名格式 <code>&lt;对话标题&gt;_&lt;yyyyMMddHHmmss&gt;.xlsx</code>，过滤 Windows 非法字符，超 50 字符截断，标题为空兜底「1688商品选品结果」</td></tr>
+              <tr><td>选品摘要</td><td>不展示</td></tr>
+            </tbody>
+          </table>
+
+          <h3>测试要点</h3>
+          <ul class="checklist">
+            <li>列表模式右侧无空白区域（窗口缩放时也满足）</li>
+            <li>列表标题两行折行 + 省略号，悬停显示完整</li>
+            <li>图片模式「详情」按钮点击后整行卡片展开，高度与同行对齐</li>
+            <li>图片模式悬停主图时右侧 320×320 预览图出现，靠近右边时向左翻转</li>
+            <li>诚信通年限徽章为橙色渐变 + 👑 + 白色粗体；公司类型徽章为蓝色浅底</li>
+            <li>未知/空值字段统一显示 --</li>
+            <li>商品链接缺失时使用 detail.1688.com 兜底链接</li>
+            <li>导出文件名符合规范，非法字符已过滤，超长已截断</li>
+            <li>导出表格中 48H 履约率与响应率为整数百分比</li>
+            <li>筛选 + 排序 + 分页组合使用结果正确</li>
+          </ul>
+        </section>
+
+        <!-- ==================== 模块四 ==================== -->
+        <section id="m4">
+          <h2>模块四 · 报告生成</h2>
+
+          <h3>原型 Demo</h3>
+          <div class="demo">
+            <div class="demo__bar">
+              <span class="demo__dot demo__dot--r"></span><span class="demo__dot demo__dot--y"></span><span class="demo__dot demo__dot--g"></span>
+              <span>报告生成 · 进度提示</span>
+            </div>
+            <div class="demo__body" style="font-size:0.82rem;">
+              <div style="margin-bottom:8px;">
+                <button class="pt-btn">生成报告</button>
+              </div>
+              <div style="background:var(--page-brand-soft);padding:10px;border-radius:8px;">
+                <div style="font-weight:600;color:var(--page-brand);margin-bottom:4px;">已生成报告预览，完整结果加载中…</div>
+                <div style="font-size:0.76rem;color:var(--page-text-muted);">报告地址准备就绪后将自动加载到右侧预览区</div>
+              </div>
+            </div>
+          </div>
+
+          <h3>业务逻辑</h3>
+          <table>
+            <thead><tr><th width="26%">环节</th><th>规则</th></tr></thead>
+            <tbody>
+              <tr><td>触发</td><td>用户在结果区点击「生成报告」按钮（或 AI 自动返回 obsUrl 时直接加载）</td></tr>
+              <tr><td>接口地址</td><td>主备双地址：公网 <code>yidong.dianleida.net:20007</code> / 内网 <code>192.168.1.14</code>；主地址失败回退内网</td></tr>
+              <tr><td>obsUrl</td><td>报告生成接口返回 obsUrl（报告 HTML 页面地址），前端用 iframe 加载预览</td></tr>
+              <tr><td>进度提示</td><td>生成中显示「已生成报告预览，完整结果加载中」；完成后显示「检索完成，共 X 条符合条件的商品」</td></tr>
+              <tr><td>失败处理</td><td>504 超时：提示「报告生成超时，请稍后重试」；占位符未替换：检查模板渲染</td></tr>
+              <tr><td>报告链路</td><td>报告由 Dify 工作流（192.168.1.149）生成，后端转发，前端不直连 Dify</td></tr>
+            </tbody>
+          </table>
+
+          <h3>测试要点</h3>
+          <ul class="checklist">
+            <li>点击「生成报告」后进度提示正确显示</li>
+            <li>主地址失败时自动回退内网地址</li>
+            <li>504 超时时给出明确提示，不卡死</li>
+            <li>obsUrl 返回后右侧预览区自动加载</li>
+            <li>报告内占位符（如 {{count}}）已被真实数据替换</li>
+          </ul>
+        </section>
+
+        <!-- ==================== 模块五 ==================== -->
+        <section id="m5">
+          <h2>模块五 · 报告预览</h2>
+
+          <h3>原型 Demo</h3>
+          <div class="demo">
+            <div class="demo__bar">
+              <span class="demo__dot demo__dot--r"></span><span class="demo__dot demo__dot--y"></span><span class="demo__dot demo__dot--g"></span>
+              <span>报告预览 · iframe 同源代理 + 横向滚动增强 + 缩放</span>
+            </div>
+            <div class="demo__body">
+              <div style="border:1px solid var(--page-border);border-radius:6px;overflow:hidden;">
+                <div style="display:flex;justify-content:space-between;align-items:center;background:var(--page-surface-muted);padding:6px 10px;font-size:0.76rem;">
+                  <span>报告标题 · 来自 *.dianleida.net</span>
+                  <span>
+                    <button class="pt-btn pt-btn--ghost" style="font-size:0.7rem;padding:2px 8px;">−</button>
+                    <span style="margin:0 6px;">100%</span>
+                    <button class="pt-btn pt-btn--ghost" style="font-size:0.7rem;padding:2px 8px;">+</button>
+                  </span>
+                </div>
+                <div style="height:120px;background:var(--page-surface);padding:10px;font-size:0.74rem;color:var(--page-text-muted);overflow:auto;">
+                  报告内容区域（同源代理后可注入横向滚动增强脚本）…<br>
+                  ← 横向滚动增强 →
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <h3>业务逻辑</h3>
+          <table>
+            <thead><tr><th width="28%">项目</th><th>规则</th></tr></thead>
+            <tbody>
+              <tr><td>同源代理</td><td>8088 本地服务提供 <code>/api/proxy</code>，代理 <code>*.dianleida.net</code> 报告页面；解决 iframe 跨域限制，使前端可注入脚本</td></tr>
+              <tr><td>横向滚动增强</td><td>通过代理注入脚本，为宽表格/宽图表添加横向滚动增强（Shift+滚轮横向滚动等）</td></tr>
+              <tr><td>缩放</td><td>支持缩放控制（− / 百分比 / +），范围待定</td></tr>
+              <tr><td>多文件预览</td><td>右侧预览支持当前会话多个报告文件打开；「+」号功能隐藏；当前会话已打开预览时，下次进入默认打开</td></tr>
+              <tr><td>报告登记</td><td>8088 提供 <code>/api/report-links</code> 报告链接登记表，记录已生成的报告地址</td></tr>
+            </tbody>
+          </table>
+
+          <h3>测试要点</h3>
+          <ul class="checklist">
+            <li>跨域报告页面经同源代理后可正常预览</li>
+            <li>横向滚动增强生效（宽表格可横向滚动）</li>
+            <li>缩放 −/+ 按钮生效，百分比显示正确</li>
+            <li>同一会话多个报告文件可在右侧切换预览</li>
+            <li>已打开预览的会话再次进入时默认展开预览</li>
+          </ul>
+        </section>
+
+        <!-- ==================== 模块六 ==================== -->
+        <section id="m6">
+          <h2>模块六 · 刷新恢复</h2>
+
+          <h3>原型 Demo</h3>
+          <div class="demo">
+            <div class="demo__bar">
+              <span class="demo__dot demo__dot--r"></span><span class="demo__dot demo__dot--y"></span><span class="demo__dot demo__dot--g"></span>
+              <span>刷新后 · 报告与表格标签共存</span>
+            </div>
+            <div class="demo__body" style="font-size:0.82rem;">
+              <div class="pt-tab-row">
+                <span class="pt-tab pt-tab--active">报告</span>
+                <span class="pt-tab">表格 (32)</span>
+              </div>
+              <div style="color:var(--page-text-muted);">刷新页面后，左侧会话列表、当前会话的商品表格、报告预览均从 localStorage 恢复；报告与表格标签共存，可互切。</div>
+            </div>
+          </div>
+
+          <h3>业务逻辑</h3>
+          <h4>localStorage 五个缓存键</h4>
+          <table>
+            <thead><tr><th width="30%">缓存键</th><th>内容</th></tr></thead>
+            <tbody>
+              <tr><td>会话列表</td><td>当前用户全部会话（id/标题/创建时间/最后消息）</td></tr>
+              <tr><td>当前会话 ID</td><td>刷新前最后选中的会话 ID</td></tr>
+              <tr><td>会话消息</td><td>每个会话的聊天消息记录</td></tr>
+              <tr><td>会话商品</td><td>每个会话的标准化商品数组（含 raw）</td></tr>
+              <tr><td>会话报告</td><td>每个会话的报告 obsUrl 与预览状态</td></tr>
+            </tbody>
+          </table>
+
+          <h4>标签注册规则（关键修复点）</h4>
+          <ul>
+            <li>商品轮次完成时<strong>立即注册右侧表格标签</strong>，但不抢夺报告焦点（报告标签保持激活）</li>
+            <li>刷新后报告与表格标签共存，互切正常</li>
+            <li>同一会话报告 → 表格（不点「查看完整列表」）→ 刷新，表格标签仍存在</li>
+          </ul>
+
+          <div class="callout callout--danger">
+            <strong>已修复缺陷：</strong>此前商品轮次完成时未立即注册表格标签，导致「报告→表格（不点查看完整列表）→刷新」后表格标签丢失。现已修复为完成即注册（不抢报告焦点）。
+          </div>
+
+          <h3>测试要点</h3>
+          <ul class="checklist">
+            <li>刷新后左侧会话列表恢复，当前会话选中</li>
+            <li>刷新后聊天消息记录恢复</li>
+            <li>刷新后商品表格数据恢复，分页/筛选/排序状态可重置</li>
+            <li>刷新后报告预览恢复</li>
+            <li>同一会话：报告 → 表格（不点查看完整列表）→ 刷新，表格标签仍存在</li>
+            <li>刷新后报告与表格标签共存，互切正常</li>
+            <li>商品轮次完成时表格标签立即出现，且不抢报告焦点</li>
+          </ul>
+        </section>
+
+        <!-- ==================== 模块七 ==================== -->
+        <section id="m7">
+          <h2>模块七 · 会话管理</h2>
+
+          <h3>原型 Demo</h3>
+          <div class="demo">
+            <div class="demo__bar">
+              <span class="demo__dot demo__dot--r"></span><span class="demo__dot demo__dot--y"></span><span class="demo__dot demo__dot--g"></span>
+              <span>会话管理 · 新建/追问/重命名/删除 + 四层运行反馈</span>
+            </div>
+            <div class="demo__body">
+              <div class="pt-col" style="max-width:240px;">
+                <h5>会话列表</h5>
+                <div class="pt-conv-item pt-conv-item--running">
+                  新建对话
+                  <div style="font-size:0.68rem;color:var(--page-text-muted);">生成中…</div>
+                </div>
+                <div class="pt-conv-item pt-conv-item--active">夏季女装连衣裙选品</div>
+                <div class="pt-conv-item">3C 数据线爆品筛选</div>
+                <div style="margin-top:8px;display:flex;gap:4px;">
+                  <button class="pt-btn pt-btn--ghost" style="font-size:0.7rem;">重命名</button>
+                  <button class="pt-btn pt-btn--ghost" style="font-size:0.7rem;">删除</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <h3>业务逻辑</h3>
+          <table>
+            <thead><tr><th width="26%">交互</th><th>规则</th></tr></thead>
+            <tbody>
+              <tr><td>新建对话</td><td>点击「新建」后左侧<strong>立即插入临时「新建对话」条目</strong>；首次发送后由真实会话替换；SSE 收到 <code>conversation_id</code> 后调用 <code>syncOfficialConversationTitle()</code> 刷新标题（发送后约 1~2 秒显示新会话）</td></tr>
+              <tr><td>追问</td><td>同一会话 ID 在多轮请求中一致传递，保证上下文继承；解决追问时商品品类丢失问题</td></tr>
+              <tr><td>重命名</td><td>调用 <code>renameConversation</code> 接口；成功后左栏标题与缓存同步更新</td></tr>
+              <tr><td>删除</td><td>调用 <code>deleteConversation</code> 接口；成功后从左栏移除并清理对应缓存；当前会话被删时切换到第一条或空状态</td></tr>
+              <tr><td>历史加载</td><td>点击历史会话，调用 <code>conversations</code> + <code>conversationMessages</code> 恢复聊天记录与商品/报告</td></tr>
+              <tr><td>运行中反馈</td><td>四层视觉：①扩散光环脉冲点 ②「生成中」旋转徽章 ③条目呼吸背景 ④标题强调色</td></tr>
+              <tr><td>列表更新事件</td><td>监听 <code>dld:conversations-updated</code> 事件刷新左栏；但不应提前退出空列表分支，避免新建对话时左栏 DOM 被清空</td></tr>
+            </tbody>
+          </table>
+
+          <div class="callout callout--warn">
+            <strong>已知后端问题：</strong>
+            <ul style="margin:6px 0 0;">
+              <li>会话在本地数据库有记录但未在 AI 服务（Coze/Dify）同步建立时，加载历史会话返回 <code>code: 6010</code> 错误 — 属于后端会话绑定问题，前端兜底提示「会话未同步，请重新提问」</li>
+              <li>后端未持久化 Dify 返回的 conversation_id 到本地会话记录时，历史消息接口无法反查 Dify 会话，且追问时每次创建新 Dify 会话导致上下文丢失 — 需检查 stream 链路中的会话 ID 落库逻辑</li>
+              <li>后端流式接口存在间歇性 HTTP 500 故障，需检查 192.168.1.14 上的服务日志根治</li>
+              <li>后端未返回 <code>X-AI-Conversation-Id</code> 响应头，需从 SSE 的 <code>workflow_started</code> 事件中提取 conversation_id</li>
+            </ul>
+          </div>
+
+          <h3>测试要点</h3>
+          <ul class="checklist">
+            <li>点击「新建」后左侧立即出现临时「新建对话」条目</li>
+            <li>首次发送后约 1~2 秒，临时条目被真实会话替换</li>
+            <li>追问时携带同一会话 ID，上下文不丢失</li>
+            <li>重命名后左栏标题与缓存同步更新</li>
+            <li>删除当前会话后自动切换到下一条或空状态</li>
+            <li>历史会话点击后聊天记录、商品、报告均恢复</li>
+            <li>运行中会话四层视觉反馈同时生效</li>
+            <li>加载历史会话返回 6010 时有兜底提示</li>
+            <li>新建对话时左栏 DOM 不被清空</li>
+          </ul>
+        </section>
+
+        <!-- ==================== 模块八 ==================== -->
+        <section id="m8">
+          <h2>模块八 · 积分用量</h2>
+
+          <h3>原型 Demo</h3>
+          <div class="demo">
+            <div class="demo__bar">
+              <span class="demo__dot demo__dot--r"></span><span class="demo__dot demo__dot--y"></span><span class="demo__dot demo__dot--g"></span>
+              <span>积分用量 · 套餐 + 用量条</span>
+            </div>
+            <div class="demo__body" style="font-size:0.82rem;">
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px;">
+                <span>已用 420 / 总量 1,000 积分 · ¥29.9/月</span>
+                <span style="color:var(--page-brand);font-weight:600;">剩余 58%</span>
+              </div>
+              <div class="pt-meter"><div class="pt-meter__fill"></div></div>
+              <div style="margin-top:10px;">
+                <span class="pt-tag">DeepSeek V4.1 Flash</span>
+                <span class="pt-tag" style="background:var(--page-brand-soft);color:var(--page-brand-text);">系数 0.002</span>
+                <span class="pt-tag" style="background:var(--page-brand-soft);color:var(--page-brand-text);">每次≈18积分</span>
+              </div>
+            </div>
+          </div>
+
+          <h3>业务逻辑</h3>
+
+          <h4>套餐定价</h4>
+          <table>
+            <thead><tr><th>套餐</th><th>价格</th><th>积分</th><th>单价</th><th>有效期</th></tr></thead>
+            <tbody>
+              <tr><td>月度版（默认）</td><td>¥29.9</td><td>1,000 积分</td><td>≈¥0.03/积分</td><td>1 个月，不结转</td></tr>
+            </tbody>
+          </table>
+
+          <h4>计费公式（核心）</h4>
+          <div class="callout">
+            <strong>扣积分 = token 总数 × 0.002</strong>，保留两位小数（如 18.42）
+          </div>
+          <p>用户只看到积分消耗，<strong>看不到 token、看不到系数、看不到人民币</strong>。</p>
+
+          <h4>模型与真实成本</h4>
+          <table>
+            <thead><tr><th>项目</th><th>数值</th><th>说明</th></tr></thead>
+            <tbody>
+              <tr><td>模型</td><td><code>DeepSeek V4.1 Flash</code></td><td>当前唯一模型档位，轻量快速版</td></tr>
+              <tr><td>每次对话 token</td><td>约 9,000</td><td>含输入（问题+上下文）+ 输出（AI回答+工作流节点）</td></tr>
+              <tr><td>每次扣积分</td><td>9,000 × 0.002 = <strong>18 积分</strong></td><td>用户看到「消耗 18 积分」</td></tr>
+              <tr><td>DeepSeek 真实成本</td><td>≈¥0.013/次</td><td>实测均价 ¥1.42/百万 token</td></tr>
+              <tr><td>用户每次付</td><td>18 × ¥0.03 = ¥0.54</td><td>按套餐单价折算</td></tr>
+              <tr><td>每次毛利</td><td>¥0.53</td><td>利润率约 98%</td></tr>
+              <tr><td>月度成本/收入</td><td>成本 ¥0.72 / 收 ¥29.9</td><td>1,000 积分聊约 55 次</td></tr>
+            </tbody>
+          </table>
+
+          <h4>不同 token 量级的扣费</h4>
+          <table>
+            <thead><tr><th>场景</th><th>token</th><th>扣积分</th></tr></thead>
+            <tbody>
+              <tr><td>短追问</td><td>3,000</td><td>6.00</td></tr>
+              <tr><td>正常选品</td><td>9,000</td><td>18.00</td></tr>
+              <tr><td>深度报告</td><td>18,000</td><td>36.00</td></tr>
+              <tr><td>超长上下文</td><td>30,000</td><td>60.00</td></tr>
+            </tbody>
+          </table>
+
+          <h4>扣费时机与数据源（关键）</h4>
+          <ul>
+            <li><strong>后端必须返回真实 token 数</strong>：SSE 的 <code>workflow_finished</code> 事件需携带 <code>inputTokens</code> 和 <code>outputTokens</code>；前端用 <code>(inputTokens + outputTokens) × 0.002</code> 计算并扣减</li>
+            <li>当前前端是随机模拟（<code>380 + random*420</code>），<strong>正式版必须替换为后端真实 token</strong>，否则扣费不准</li>
+            <li><code>workflow_started</code> 时不扣费（防止失败白扣）</li>
+            <li>积分不足时发送按钮置灰并提示「积分不足，请充值」</li>
+          </ul>
+
+          <h4>失败退费</h4>
+          <ul>
+            <li>SSE 超时/500 错误：若已预扣，<strong>全额退回</strong></li>
+            <li>报告生成 504：退回该次扣费</li>
+            <li>正常完成：按真实 token 扣减，写入消耗明细</li>
+          </ul>
+
+          <h4>余额不足与透支处理</h4>
+          <div class="callout">
+            <strong>用户看到的是「用完了」，系统记的是「透支了」，充值时「一笔勾销」。</strong>
+          </div>
+          <table>
+            <thead><tr><th width="30%">规则</th><th>说明</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>① 普通对话透支</td>
+                <td>余额 &gt; 0 时发起对话 → <strong>让本轮跑完</strong>，允许小额透支（内部负数记账）；可选保险丝：单轮扣费 <strong>100 积分封顶</strong>（约 5 万 token），超出部分平台兜底</td>
+              </tr>
+              <tr>
+                <td>② 余额 ≤ 0 拦截</td>
+                <td>拦截一切<strong>新消耗</strong>（新对话/追问/报告生成），充值后恢复；<strong>历史数据照常可看</strong>（会话记录、报告、表格不锁定）</td>
+              </tr>
+              <tr>
+                <td>③ 前台显示 0</td>
+                <td>前台余额显示 <code>max(0, 内部余额)</code>，<strong>永不出现负数</strong>；显示「剩余 0 积分」+「积分已用完」，不制造「欠债感」</td>
+              </tr>
+            </tbody>
+          </table>
+          <h4>透支时的分层显示</h4>
+          <table>
+            <thead><tr><th width="25%">位置</th><th>显示效果</th></tr></thead>
+            <tbody>
+              <tr><td>顶部余额</td><td>「剩余 0 积分」（红色）+ 充值按钮</td></tr>
+              <tr><td>用量条</td><td>100% 打满并变红</td></tr>
+              <tr><td>发送拦截提示</td><td>「积分已用完，请充值」，不出现「欠」「负」字样</td></tr>
+              <tr><td>消耗明细</td><td>透支轮<strong>照实记实际消耗</strong>（如 -60），保证与 token 对账一致；可加「透支」徽章</td></tr>
+              <tr><td>充值到账</td><td><strong>足额到账</strong>（充 1000 → 余额 1000），历史透支自动减免，作平台体验成本</td></tr>
+            </tbody>
+          </table>
+          <p class="muted">透支敞口评估：每轮透支上限 = 一轮对话真实成本 ≈ ¥0.013（正常）~ ¥0.043（超长），且透支后立即拦截，每充值周期最多发生一次，风险可控。</p>
+
+          <h4>用量展示</h4>
+          <ul>
+            <li>用量条显示已用/总量，百分比与剩余同步</li>
+            <li>每次对话完成后刷新用量（调用 <code>getMemberLimit</code>）</li>
+            <li>消耗明细展示：对话发起文字（截断）+ 消耗积分（带两位小数）+ 时间</li>
+            <li>充值明细展示：订单号 + 套餐 + 积分 + 时间</li>
+          </ul>
+
+          <h3>测试要点</h3>
+          <ul class="checklist">
+            <li>套餐 ¥29.9/1000 积分，1 积分 ≈ ¥0.03</li>
+            <li>公式：扣积分 = token × 0.002，保留两位小数</li>
+            <li>正常选品对话（约9000 token）扣约 18 积分</li>
+            <li>短追问（3000 token）扣 6 积分，深度报告（18000）扣 36 积分</li>
+            <li>用量条在对话完成后及时更新</li>
+            <li>积分不足时发送按钮置灰且有提示</li>
+            <li>SSE 超时/500 失败时已预扣的积分全额退回</li>
+            <li>余额 10 积分发起对话 → 本轮正常跑完，内部余额变负数，前台显示 0</li>
+            <li>透支轮消耗明细照实记录实际消耗（如 -60），与 token 对账一致</li>
+            <li>内部余额 ≤ 0 → 新对话/追问/报告生成全部拦截，提示「积分已用完，请充值」</li>
+            <li>余额 ≤ 0 时历史会话、报告、表格仍可正常查看，不锁定</li>
+            <li>前台余额永不显示负数（显示 max(0, 内部余额)）</li>
+            <li>透支后充值 1000 → 足额到账 1000（透支自动减免，不抵扣）</li>
+            <li>拦截判定必须使用内部余额，不能使用前台显示值</li>
+            <li>用户看不到 token、系数、人民币，只看到积分消耗</li>
+            <li>后端 workflow_finished 必须返回真实 inputTokens/outputTokens（当前前端随机模拟需替换）</li>
+          </ul>
+        </section>
+
+        <!-- ==================== 模块九 ==================== -->
+        <section id="m9">
+          <h2>模块九 · 主子账号信息隔离</h2>
+
+          <h3>原型 Demo</h3>
+          <div class="demo">
+            <div class="demo__bar">
+              <span class="demo__dot demo__dot--r"></span><span class="demo__dot demo__dot--y"></span><span class="demo__dot demo__dot--g"></span>
+              <span>账号胶囊（主=绿 / 子=蓝）+ 下拉切换 + 子账号设置</span>
+            </div>
+            <div class="demo__body">
+              <div style="display:flex;gap:12px;align-items:center;margin-bottom:10px;">
+                <span class="pt-badge" style="background:var(--page-brand-soft);color:var(--page-brand-text);font-size:0.78rem;padding:3px 10px;">🏬 主账号·176****6666</span>
+                <span style="font-size:0.74rem;color:var(--page-text-muted);">▾ 切换</span>
+              </div>
+              <div class="pt-col" style="max-width:280px;">
+                <h5>账号下拉列表</h5>
+                <div class="pt-conv-item pt-conv-item--active">🏬 主账号·总店 <span class="pt-badge" style="font-size:0.64rem;">当前</span></div>
+                <div class="pt-conv-item">🏪 子账号A·分店1</div>
+                <div class="pt-conv-item">🏪 子账号B·分店2</div>
+                <div style="margin-top:8px;font-size:0.72rem;color:var(--page-text-muted);">主子账号共享积分额度</div>
+              </div>
+              <div style="margin-top:10px;border:1px solid var(--page-border);border-radius:6px;padding:10px;">
+                <div style="font-weight:600;margin-bottom:6px;">子账号设置 <span class="pt-tag" style="font-size:0.68rem;">本版本</span></div>
+                <div style="font-size:0.76rem;margin-bottom:4px;">
+                  <strong>① 子账号互看</strong>：开启后子账号之间可相互切换查看对应账号页面
+                </div>
+                <div style="font-size:0.76rem;">
+                  <strong>② 主账号控制</strong>：主账号可切换查看任一账号；子账号不能查看其他账号信息
+                </div>
+                <div style="margin-top:6px;font-size:0.74rem;color:var(--page-brand);">
+                  <a href="https://www.dianleida.net/1688/competeShop/memberCenter/subAccountManagement" target="_blank">管理子账号 ›</a>（跳转会员中心）
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <h3>业务逻辑</h3>
+          <table>
+            <thead><tr><th width="26%">项目</th><th>规则</th></tr></thead>
+            <tbody>
+              <tr><td>账号身份</td><td>主账号（绿色胶囊）/ 子账号（蓝色胶囊）；由 <code>getMemberDetail</code> 返回的 <code>loginAccount</code> + <code>mobilePhone</code>（脱敏 176****6666）组装展示</td></tr>
+              <tr><td>子账号列表</td><td>调用 <code>POST /api/members/slaveList</code> 拉取；成功后用真数据替换 mock 子账号；失败保留演示账号并 console.warn</td></tr>
+              <tr><td>套餐信息</td><td>调用 <code>GET /api/members/getMemberVerObj</code> 返回当前套餐</td></tr>
+              <tr><td>信息隔离 · 子账号互看</td><td>开启后子账号之间可相互切换查看对应账号的页面（会话/商品/报告）</td></tr>
+              <tr><td>信息隔离 · 主账号控制</td><td>主账号始终可切换查看任一账号；子账号不能查看其他账号信息</td></tr>
+              <tr><td>积分共享</td><td>主子账号共享积分额度，切换账号不重置积分池</td></tr>
+              <tr><td>返回主账号</td><td>子账号视图下显示「返回主账号」按钮（<code>apResetBtn</code>）；一键切回主账号并刷新视图；主账号视图下隐藏该按钮</td></tr>
+              <tr><td>子账号设置入口</td><td>仅主账号可访问子账号设置（<code>accountSettingsBtn</code>）；非主账号点击提示「仅主账号可访问子账号设置」</td></tr>
+              <tr><td>子账号管理</td><td>添加/管理子账号已移交会员中心页面，设置弹窗内「管理子账号」直接跳转外部地址</td></tr>
+              <tr><td>切换后刷新</td><td>切换账号后刷新当前账号视图：会话列表、商品缓存、报告按账号隔离加载</td></tr>
+              <tr><td>列表更新事件</td><td>监听 <code>dld:conversations-updated</code> 刷新左栏；不提前退出空列表分支，避免新建对话时 DOM 被清空</td></tr>
+            </tbody>
+          </table>
+
+          <h3>测试要点</h3>
+          <ul class="checklist">
+            <li>主账号胶囊为绿色，子账号胶囊为蓝色</li>
+            <li>主账号可切换查看任一子账号页面</li>
+            <li>子账号互看开启后，子账号间可相互切换查看</li>
+            <li>子账号互看关闭（主账号控制）时，子账号只能查看自己</li>
+            <li>「返回主账号」按钮仅在子账号视图下显示</li>
+            <li>非主账号点击子账号设置入口时提示「仅主账号可访问」</li>
+            <li>子账号管理跳转会员中心外部地址</li>
+            <li>切换账号后会话/商品/报告按账号隔离刷新</li>
+            <li>主子账号共享积分额度，切换不重置</li>
+            <li>slaveList 接口失败时保留演示账号且有 console.warn</li>
+          </ul>
+        </section>
+
+        <!-- ==================== 模块十 ==================== -->
+        <section id="m10">
+          <h2>模块十 · 购买与充值</h2>
+
+          <h3>原型 Demo</h3>
+          <div class="demo">
+            <div class="demo__bar">
+              <span class="demo__dot demo__dot--r"></span><span class="demo__dot demo__dot--y"></span><span class="demo__dot demo__dot--g"></span>
+              <span>积分中心弹窗（余额 + 套餐）+ 购买确认弹窗</span>
+            </div>
+            <div class="demo__body" style="font-size:0.82rem;">
+              <div style="margin-bottom:10px;">
+                <span style="color:var(--page-text-muted);">当前余额</span>
+                <strong style="color:var(--page-brand);font-size:1.1rem;margin-left:6px;">4,200 积分</strong>
+                <button class="pt-btn" style="margin-left:8px;">充值</button>
+              </div>
+              <div style="font-weight:600;margin-bottom:6px;">充值套餐</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <div style="border:1px solid var(--page-border);border-radius:6px;padding:8px;width:120px;text-align:center;">
+                  <div style="font-weight:600;">体验包</div><div>500 积分</div><div class="pt-card-price">¥9.9</div>
+                  <button class="pt-btn pt-btn--ghost" style="font-size:0.7rem;margin-top:4px;">立即购买</button>
+                </div>
+                <div style="border:2px solid var(--page-brand);border-radius:6px;padding:8px;width:120px;text-align:center;background:var(--page-brand-soft);">
+                  <div style="font-weight:600;color:var(--page-brand-text);">常用包 ✓</div><div>2,000 积分</div><div class="pt-card-price">¥29.9</div>
+                  <button class="pt-btn" style="font-size:0.7rem;margin-top:4px;">立即购买</button>
+                </div>
+                <div style="border:1px solid var(--page-border);border-radius:6px;padding:8px;width:120px;text-align:center;">
+                  <div style="font-weight:600;">专业包</div><div>10,000 积分</div><div class="pt-card-price">¥99</div>
+                  <button class="pt-btn pt-btn--ghost" style="font-size:0.7rem;margin-top:4px;">立即购买</button>
+                </div>
+              </div>
+              <div style="margin-top:10px;border:1px solid var(--page-border);border-radius:6px;padding:10px;background:var(--page-surface);">
+                <div style="font-weight:600;margin-bottom:4px;">确认充值</div>
+                <div class="pt-card-row"><span>套餐名称</span><strong>常用包</strong></div>
+                <div class="pt-card-row"><span>积分数量</span><strong>2,000</strong></div>
+                <div class="pt-card-row"><span>支付金额</span><strong class="pt-card-price">¥29.9</strong></div>
+                <button class="pt-btn" style="margin-top:6px;">确认支付</button>
+              </div>
+            </div>
+          </div>
+
+          <h3>业务逻辑</h3>
+          <table>
+            <thead><tr><th width="26%">项目</th><th>规则</th></tr></thead>
+            <tbody>
+              <tr><td>积分中心入口</td><td>顶部积分药丸（<code>coinChip</code>）或账号区「积分中心」入口（<code>apWalletEntry</code>）点击打开积分中心弹窗</td></tr>
+              <tr><td>弹窗内容</td><td>当前余额 + 「充值明细」入口 + 「消耗明细」入口 + 充值套餐列表</td></tr>
+              <tr><td>充值套餐</td><td>三档：体验包（500 积分 / ¥9.9）、常用包（2,000 / ¥29.9，默认选中）、专业包（10,000 / ¥99）</td></tr>
+              <tr><td>立即购买</td><td>点击「立即购买」→ 购买确认弹窗（套餐名、积分数量、支付金额）→ 确认支付</td></tr>
+              <tr><td>订单号生成</td><td>格式 <code>dld + yyyyMMddHHmmss + 3位随机数字</code>；与现有订单查重，重复则重新生成</td></tr>
+              <tr><td>充值后</td><td>余额增加，订单写入充值明细（BUY_LEDGER）</td></tr>
+            </tbody>
+          </table>
+
+          <div class="callout callout--warn">
+            <strong>对接状态：</strong>购买与充值当前为<strong>前端演示数据</strong>（演示价格，正式版接入支付）。
+            后端暂未提供购买/充值接口，<code>walletPkgTip</code> 提示「演示价格，正式版接入支付」。
+            后端接口就绪后需替换套餐来源与支付链路。
+          </div>
+
+          <h3>测试要点</h3>
+          <ul class="checklist">
+            <li>三档套餐的积分与价格正确（500/¥9.9、2000/¥29.9、10000/¥99）</li>
+            <li>常用包默认选中</li>
+            <li>购买确认弹窗显示正确的套餐名/积分/金额</li>
+            <li>订单号格式正确（dld + 时间戳 + 3位随机）且查重</li>
+            <li>确认支付后余额增加、充值明细新增一条记录</li>
+            <li>注：当前为 mock，正式版需接入支付链路</li>
+          </ul>
+        </section>
+
+        <!-- ==================== 模块十一 ==================== -->
+        <section id="m11">
+          <h2>模块十一 · 充值明细与消耗明细</h2>
+
+          <h3>原型 Demo · 充值明细</h3>
+          <div class="demo">
+            <div class="demo__bar">
+              <span class="demo__dot demo__dot--r"></span><span class="demo__dot demo__dot--y"></span><span class="demo__dot demo__dot--g"></span>
+              <span>充值明细 · 订单号/套餐/金额/时间 + 日期筛选 + 分页</span>
+            </div>
+            <div class="demo__body" style="overflow-x:auto;">
+              <table class="pt-table">
+                <thead><tr><th>订单号</th><th>充值套餐</th><th>积分</th><th>时间</th></tr></thead>
+                <tbody>
+                  <tr><td><code>dld20260824102015842</code></td><td>常用包</td><td>+2,000</td><td>2026-08-24 10:20:15</td></tr>
+                  <tr><td><code>dld20260822184110673</code></td><td>体验包</td><td>+500</td><td>2026-08-22 18:41:10</td></tr>
+                </tbody>
+              </table>
+              <div style="margin-top:6px;font-size:0.74rem;color:var(--page-text-muted);">共 2 条 · 累计 2,500 积分 · 退款记录不在充值明细展示</div>
+            </div>
+          </div>
+
+          <h3>原型 Demo · 消耗明细</h3>
+          <div class="demo">
+            <div class="demo__bar">
+              <span class="demo__dot demo__dot--r"></span><span class="demo__dot demo__dot--y"></span><span class="demo__dot demo__dot--g"></span>
+              <span>消耗明细 · 对话发起文字（截断）+ 来源会话徽章 + 日期筛选 + 分页</span>
+            </div>
+            <div class="demo__body" style="overflow-x:auto;">
+              <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
+                <span class="pt-tag" style="background:#2a2e35;color:#fff;">全部</span>
+                <span class="pt-tag">连衣裙</span>
+                <span class="pt-tag">防晒衣</span>
+              </div>
+              <table class="pt-table">
+                <thead><tr><th>对话发起</th><th>来源会话</th><th>消耗</th><th>时间</th></tr></thead>
+                <tbody>
+                  <tr><td>帮我找一下近30天的连衣裙爆款…</td><td><span class="pt-badge">近30天连衣裙爆款价格</span></td><td class="pt-card-price">−20</td><td>2026-09-21 10:12:36</td></tr>
+                  <tr><td>夏季防晒衣现在哪些是热销款？…</td><td><span class="pt-badge">夏季防晒衣热销选品</span></td><td class="pt-card-price">−20</td><td>2026-09-20 16:44:02</td></tr>
+                </tbody>
+              </table>
+              <div style="margin-top:6px;font-size:0.74rem;color:var(--page-text-muted);">共 12 条 · 累计消耗 245 积分</div>
+            </div>
+          </div>
+
+          <h3>业务逻辑</h3>
+          <table>
+            <thead><tr><th width="24%">项目</th><th width="38%">充值明细</th><th>消耗明细</th></tr></thead>
+            <tbody>
+              <tr><td>数据列</td><td>订单号、充值套餐、积分、时间</td><td>对话发起文字（截断）、来源会话徽章、消耗积分、时间</td></tr>
+              <tr><td>筛选</td><td>日期范围（双月面板，右对齐展开）</td><td>chips 关键词 + 日期范围（右对齐）</td></tr>
+              <tr><td>分页</td><td>每页 10 条（<code>PAGE_SIZE</code>）</td><td>每页 10 条</td></tr>
+              <tr><td>底部统计</td><td>共 X 条 · 累计 X 积分</td><td>共 X 条 · 累计消耗 X 积分</td></tr>
+              <tr><td>特殊规则</td><td>退款记录（amount &lt; 0）不在充值明细展示</td><td>对话发起文字超长截断 + 来源会话徽章</td></tr>
+              <tr><td>切换</td><td colspan="2">明细弹窗顶部「充值明细」/「消耗明细」两个入口可切换（<code>ledgerSwitchBuy</code> / <code>ledgerSwitchConsume</code>）</td></tr>
+            </tbody>
+          </table>
+
+          <div class="callout callout--danger">
+            <strong>对接状态（重要）：</strong>后端<strong>暂未提供</strong>充值/消耗流水接口（对接指南 11 个接口中无此类）。
+            当前用本地演示数据 <code>BUY_LEDGER</code>（3 条）与 <code>CONSUME_LEDGER</code>（12 条）。
+            流水接口就绪后在 <code>bootstrapDld</code> 中拉取并替换这两个数组的数据源。
+            <strong>后端需新增：充值流水接口、消耗流水接口。</strong>
+          </div>
+
+          <h3>测试要点</h3>
+          <ul class="checklist">
+            <li>充值/消耗明细可在弹窗内切换</li>
+            <li>充值明细列：订单号、套餐、积分、时间</li>
+            <li>消耗明细列：对话发起（截断）、来源会话徽章、消耗、时间</li>
+            <li>日期范围筛选生效（充值与消耗各自独立）</li>
+            <li>消耗明细 chips 关键词筛选生效</li>
+            <li>分页正确（每页 10 条）</li>
+            <li>充值明细不展示退款记录（amount &lt; 0）</li>
+            <li>底部统计「共 X 条 · 累计 X 积分」正确</li>
+            <li>注：当前为 mock 数据（BUY_LEDGER/CONSUME_LEDGER），接口就绪后替换</li>
+          </ul>
+        </section>
+
+        <!-- ==================== 已知边界 ==================== -->
+        <section id="edge">
+          <h2>已知边界与约束</h2>
+          <table>
+            <thead><tr><th width="30%">项目</th><th>约束</th></tr></thead>
+            <tbody>
+              <tr><td>后端地址</td><td><code>http://192.168.1.14/dld</code>，鉴权头 <code>X-AI-Access-Token: 123456</code></td></tr>
+              <tr><td>SSE 首包超时</td><td>25 秒</td></tr>
+              <tr><td>SSE 事件间隔超时</td><td>180 秒</td></tr>
+              <tr><td>报告生成地址</td><td>公网 <code>yidong.dianleida.net:20007</code> / 内网 <code>192.168.1.14</code>（主备）</td></tr>
+              <tr><td>本地服务</td><td><code>web_server.py</code> 端口 8088，no-cache 静态资源 + 报告同源代理 <code>/api/proxy</code> + 报告登记 <code>/api/report-links</code></td></tr>
+              <tr><td>Dify 工作流</td><td>192.168.1.149，由后端转发，前端不直连</td></tr>
+              <tr><td>后端间歇性 500</td><td>流式接口存在间歇性 HTTP 500，需查 192.168.1.14 服务日志</td></tr>
+              <tr><td>会话同步 6010</td><td>本地有记录但 AI 服务未同步时返回 6010，属后端绑定问题</td></tr>
+              <tr><td>conversation_id 来源</td><td>后端未返回 <code>X-AI-Conversation-Id</code> 响应头，需从 SSE <code>workflow_started</code> 事件提取</td></tr>
+              <tr><td>子账号列表</td><td><code>POST /api/members/slaveList</code>；失败时前端保留演示账号并 console.warn</td></tr>
+              <tr><td>套餐信息</td><td><code>GET /api/members/getMemberVerObj</code> 返回当前套餐</td></tr>
+              <tr><td>购买/充值接口</td><td><strong>后端暂未提供</strong>，当前前端 mock（演示价格，正式版接入支付）</td></tr>
+              <tr><td>充值/消耗流水接口</td><td><strong>后端暂未提供</strong>（对接指南 11 个接口中无此类）；当前用本地 <code>BUY_LEDGER</code>/<code>CONSUME_LEDGER</code> 演示数据，接口就绪后在 <code>bootstrapDld</code> 中拉取替换</td></tr>
+              <tr><td>子账号管理</td><td>添加/管理已移交会员中心 <code>https://www.dianleida.net/1688/competeShop/memberCenter/subAccountManagement</code></td></tr>
+              <tr><td>积分计费公式</td><td><strong>扣积分 = token × 0.002</strong>（保留两位小数）；模型 DeepSeek V4.1 Flash；套餐 ¥29.9/1,000积分/月；详见模块八</td></tr>
+              <tr><td>真实 token 数据源</td><td>SSE <code>workflow_finished</code> 事件须返回 <code>inputTokens</code>/<code>outputTokens</code>；当前前端随机模拟（<code>380 + random*420</code>），<strong>正式版必须替换</strong>，否则扣费不准</td></tr>
+              <tr><td>失败退费</td><td>SSE 超时/500/报告 504 失败时，已预扣积分全额退回；正常完成按真实 token 扣减写入消耗明细</td></tr>
+              <tr><td>余额不足与透支</td><td>余额 &gt; 0 让本轮跑完（允许小额透支，可选单轮 100 积分封顶）；内部余额 ≤ 0 拦截新消耗、历史数据照常可看；前台只显示 0 积分「已用完」永不显负数；充值足额到账、透支自动减免；<strong>拦截判定必须用内部余额</strong></td></tr>
+            </tbody>
+          </table>
+        </section>
+      </main>
+
+      <footer>
+        <p>本文档与 <code>docs/前端对接文档/前端对接文档.html</code> 配套使用：接口字段详情见对接文档，交互与验收规则见本文档。</p>
+        <p>维护：店雷达 PM · 最后更新 2026-10-09</p>
+      </footer>
+    </div>
+  </article>
+</body>
+</html>
