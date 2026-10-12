@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>V3.0.6 后台「AI积分」· 原型说明（PRD）</title>
+  <style>
+    :root {
+      --page-bg: #FFFFFF;
+      --page-surface: #F6F9F7;
+      --page-surface-muted: #EDF3EF;
+      --page-text: #1D2722;
+      --page-text-secondary: #3F4C45;
+      --page-text-muted: #67756D;
+      --page-border: #D8E2DC;
+      --page-brand: #00873C;
+      --page-brand-hover: #006C30;
+      --page-brand-soft: #EDF6F0;
+      --page-brand-soft-strong: #DCEDE2;
+      --page-brand-text: #075C33;
+      --success: #52C41A;
+      --reminder: #FF7A45;
+      --warning: #FAAD14;
+      --danger: #D4380D;
+      --code-bg: #F3F7F4;
+      --code-border: #DCE7E0;
+      --code-ink: #22332B;
+      --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px;
+      --space-5: 24px; --space-6: 32px; --space-7: 48px; --space-8: 64px;
+      --radius-sm: 4px; --radius-md: 8px; --radius-lg: 12px; --radius-pill: 999px;
+      --font-sans: -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      --font-mono: 'Cascadia Code', Consolas, 'JetBrains Mono', monospace;
+      --max: 1080px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font-sans); font-size: 15px; line-height: 1.75;
+      color: var(--page-text); background: var(--page-bg);
+      -webkit-font-smoothing: antialiased;
+    }
+    a { color: var(--page-brand); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* === Intro === */
+    .report-intro { margin-bottom: var(--space-7); }
+    .report-intro__surface {
+      position: relative; overflow: hidden; border-radius: var(--radius-lg);
+      padding: var(--space-7);
+      color: var(--page-brand-text);
+      background: linear-gradient(135deg, var(--page-brand-soft) 0%, var(--page-brand-soft-strong) 100%);
+    }
+    .report-intro__surface::before {
+      content: ""; position: absolute; z-index: 0; pointer-events: none;
+      width: 180px; height: 180px; top: -72px; right: -48px; border-radius: 50%;
+      background: var(--page-brand-soft-strong); opacity: 0.72;
+    }
+    .report-intro__content { position: relative; z-index: 1; max-width: 760px; }
+    .report-intro h1 { font-size: 1.9rem; line-height: 1.25; }
+    .report-intro__summary { margin-top: var(--space-3); color: var(--page-text-secondary); max-width: 70ch; }
+    .report-intro__meta {
+      margin-top: var(--space-4); display: flex; flex-wrap: wrap; gap: var(--space-2);
+      font-size: 0.85rem; color: var(--page-text-muted);
+    }
+    .report-intro__meta span {
+      background: rgba(255,255,255,.6); padding: 2px 10px; border-radius: var(--radius-pill);
+    }
+
+    /* === Layout === */
+    .page__content { max-width: var(--max); margin: 0 auto; padding: 0 var(--space-4); }
+    main { padding-bottom: var(--space-8); }
+    section { margin-bottom: var(--space-7); scroll-margin-top: 76px; }
+    h2 {
+      font-size: 1.45rem; color: var(--page-brand); margin-bottom: var(--space-3);
+      padding-bottom: var(--space-2); border-bottom: 2px solid var(--page-brand-soft-strong);
+    }
+    h3 { font-size: 1.15rem; color: var(--page-text); margin: var(--space-4) 0 var(--space-2); }
+    h4 { font-size: 1rem; color: var(--page-text-secondary); margin: var(--space-3) 0 var(--space-2); }
+    p { margin-bottom: var(--space-3); }
+    ul, ol { margin: 0 0 var(--space-3) var(--space-5); }
+    li { margin-bottom: var(--space-1); }
+
+    /* === TOC === */
+    /* === 顶部固定导航栏目录 === */
+    .toc {
+      position: sticky; top: 0; z-index: 50;
+      background: var(--page-surface);
+      border: 1px solid var(--page-border);
+      border-radius: var(--radius-md);
+      padding: var(--space-2) var(--space-3);
+      margin: 0 0 var(--space-5);
+      display: flex; align-items: center; gap: var(--space-3);
+      box-shadow: 0 2px 10px rgba(29,39,34,0.06);
+    }
+    .toc h2 {
+      border: none; margin: 0; padding: 0 var(--space-3) 0 0;
+      font-size: 0.9rem; white-space: nowrap; color: var(--page-brand);
+      border-right: 1px solid var(--page-border); flex-shrink: 0;
+    }
+    .toc ol {
+      list-style: none; margin: 0; padding: 0;
+      display: flex; gap: var(--space-1); overflow-x: auto; flex: 1;
+      scrollbar-width: thin; scrollbar-color: var(--page-border) transparent;
+    }
+    .toc ol::-webkit-scrollbar { height: 4px; }
+    .toc ol::-webkit-scrollbar-thumb { background: var(--page-border); border-radius: 2px; }
+    .toc li { margin: 0; white-space: nowrap; flex-shrink: 0; }
+    .toc a {
+      display: inline-block; padding: var(--space-1) var(--space-3);
+      border-radius: var(--radius-pill); font-size: 0.85rem;
+      color: var(--page-text); white-space: nowrap; text-decoration: none;
+      transition: background .15s, color .15s;
+    }
+    .toc a:hover { background: var(--page-brand-soft); color: var(--page-brand); }
+
+    /* === Tables === */
+    .table-wrap { width: 100%; overflow-x: auto; margin: var(--space-3) 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    th, td {
+      padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--page-border);
+      text-align: left; vertical-align: top; overflow-wrap: anywhere;
+    }
+    th { background: var(--page-surface-muted); font-weight: 600; color: var(--page-text-secondary); }
+    tr:hover td { background: var(--page-surface); }
+
+    /* === Code === */
+    code {
+      font-family: var(--font-mono); font-size: 0.85em;
+      background: var(--code-bg); padding: 1px 6px; border-radius: var(--radius-sm);
+      color: var(--code-ink);
+    }
+    pre {
+      background: var(--code-bg); border: 1px solid var(--code-border); border-radius: var(--radius-md);
+      padding: var(--space-3); overflow-x: auto; margin: var(--space-3) 0;
+    }
+    pre code { background: none; padding: 0; font-size: 0.85rem; line-height: 1.6; }
+
+    /* === Demo frame === */
+    .demo {
+      border: 1px solid var(--page-border); border-radius: var(--radius-md);
+      margin: var(--space-4) 0; overflow: hidden; background: var(--page-surface);
+    }
+    .demo__bar {
+      display: flex; align-items: center; gap: var(--space-2);
+      padding: var(--space-2) var(--space-3); background: var(--page-surface-muted);
+      border-bottom: 1px solid var(--page-border); font-size: 0.82rem; color: var(--page-text-muted);
+    }
+    .demo__dot { width: 8px; height: 8px; border-radius: 50%; background: var(--page-border); }
+    .demo__dot--r { background: #FF6B5C; }
+    .demo__dot--y { background: #FFC44D; }
+    .demo__dot--g { background: #4DD07A; }
+    .demo__body { padding: var(--space-4); }
+
+    /* === Mini prototype common === */
+    .pt-btn {
+      background: var(--page-brand); color: #fff; border: none; border-radius: var(--radius-sm);
+      padding: 5px 12px; font-size: 0.74rem; cursor: pointer; white-space: nowrap;
+    }
+    .pt-btn:hover { background: var(--page-brand-hover); }
+    .pt-btn--ghost { background: #fff; color: var(--page-brand); border: 1px solid var(--page-brand); }
+    .pt-btn--sm { padding: 2px 8px; font-size: 0.68rem; }
+    .pt-tag {
+      display: inline-block; background: var(--page-brand-soft); color: var(--page-brand-text);
+      padding: 1px 8px; border-radius: var(--radius-pill); font-size: 0.7rem; margin: 1px;
+    }
+    .pt-badge {
+      display: inline-block; padding: 0 5px; border-radius: var(--radius-sm); font-size: 0.64rem;
+      background: var(--page-brand-soft); color: var(--page-brand-text); font-weight: 600;
+      vertical-align: middle; line-height: 1.6;
+    }
+    .pt-badge--orange { background: linear-gradient(135deg,#ffb84d,#fa8c16); color: #fff; font-weight: 700; }
+    .pt-badge--blue { background: #E6F0FA; color: #1A5FB4; }
+    .pt-badge--new { background: var(--reminder); color: #fff; }
+    .pt-table { width: 100%; font-size: 0.7rem; border-collapse: collapse; }
+    .pt-table th, .pt-table td { padding: 5px 7px; border-bottom: 1px solid var(--page-border); white-space: nowrap; }
+    .pt-table th { background: var(--page-surface-muted); color: var(--page-text-secondary); font-weight: 600; }
+    .pt-num-green { color: var(--page-brand); font-weight: 600; }
+    .pt-num-red { color: var(--danger); font-weight: 600; }
+    .pt-link { color: var(--page-brand); cursor: pointer; }
+    .pt-link--muted { color: var(--page-text-muted); cursor: not-allowed; }
+    .pt-dot { display:inline-block; width:6px; height:6px; border-radius:50%; margin-right:4px; vertical-align:middle; }
+    .pt-dot--g { background: var(--success); } .pt-dot--y { background: var(--warning); } .pt-dot--gray { background: #B0BAB4; }
+    .pt-muted { color: var(--page-text-muted); }
+
+    /* === Admin shell (sidebar + navbar + tags-view) === */
+    .pt-admin { border: 1px solid var(--page-border); border-radius: var(--radius-sm); overflow: hidden; background: #fff; }
+    .pt-admin__shell { display: flex; }
+    .pt-admin__side {
+      width: 158px; flex-shrink: 0; background: #2B3A33; color: #B9C6BF;
+      font-size: 0.68rem; line-height: 1.5;
+    }
+    .pt-admin__logo { display: flex; align-items: center; gap: 6px; padding: 10px 10px; color: #fff; background: #222E29; }
+    .pt-admin__logo-badge {
+      width: 22px; height: 22px; border-radius: 6px; background: var(--page-brand);
+      display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.78rem; flex-shrink: 0;
+    }
+    .pt-admin__logo-text { font-size: 0.7rem; font-weight: 600; white-space: nowrap; }
+    .pt-admin__menu { padding: 4px 0 10px; }
+    .pt-admin__menu-parent { padding: 6px 10px; color: #DDE5E0; white-space: nowrap; display: flex; justify-content: space-between; }
+    .pt-admin__menu-parent .arrow { color: #7E8F87; font-size: 0.6rem; }
+    .pt-admin__menu-child { padding: 5px 10px 5px 24px; color: #AEBCB4; white-space: nowrap; }
+    .pt-admin__menu-child--active { background: var(--page-brand); color: #fff; font-weight: 600; }
+    .pt-admin__menu-ellipsis { padding: 5px 10px 5px 24px; color: #6E7E76; }
+    .pt-admin__main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .pt-admin__navbar {
+      display: flex; align-items: center; gap: 8px; padding: 7px 12px;
+      background: #fff; border-bottom: 1px solid var(--page-border);
+    }
+    .pt-admin__hamburger { color: #5A6660; font-size: 0.9rem; line-height: 1; }
+    .pt-admin__crumb { flex: 1; font-size: 0.7rem; color: var(--page-text-muted); white-space: nowrap; }
+    .pt-admin__crumb .sep { margin: 0 5px; color: #BBC7C0; }
+    .pt-admin__crumb .cur { color: var(--page-text); font-weight: 600; }
+    .pt-admin__search {
+      border: 1px solid var(--page-border); border-radius: var(--radius-pill);
+      padding: 1px 10px; font-size: 0.64rem; color: var(--page-text-muted); background: var(--page-surface);
+    }
+    .pt-admin__avatar {
+      width: 20px; height: 20px; border-radius: 50%; background: var(--page-brand-soft-strong);
+      color: var(--page-brand-text); display: flex; align-items: center; justify-content: center;
+      font-size: 0.62rem; font-weight: 700;
+    }
+    .pt-admin__uname { font-size: 0.68rem; color: var(--page-text-secondary); }
+    .pt-admin__tags { display: flex; gap: 5px; padding: 5px 12px; background: var(--page-surface); border-bottom: 1px solid var(--page-border); }
+    .pt-admin__tag {
+      font-size: 0.64rem; padding: 1px 9px; border-radius: var(--radius-sm);
+      border: 1px solid var(--page-border); background: #fff; color: var(--page-text-muted);
+    }
+    .pt-admin__tag--active { color: var(--page-brand); border-color: var(--page-brand); font-weight: 600; }
+    .pt-admin__content { padding: 10px 12px; background: var(--page-surface); flex: 1; }
+    .pt-admin__filters { display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; margin-bottom: 10px; font-size: 0.7rem; }
+    .pt-admin__select {
+      border: 1px solid var(--page-border); border-radius: var(--radius-sm); background: #fff;
+      padding: 3px 8px; color: var(--page-text-muted); min-width: 92px;
+    }
+    .pt-admin__input {
+      border: 1px solid var(--page-border); border-radius: var(--radius-sm); background: #fff;
+      padding: 3px 8px; color: var(--page-text-muted); font-size: 0.7rem;
+    }
+    .pt-admin__filter-label { color: var(--page-text-secondary); }
+    .pt-admin__card { border: 1px solid var(--page-border); border-radius: var(--radius-sm); background: #fff; padding: 0; }
+    .pt-admin__pager {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 0.68rem; color: var(--page-text-muted); padding: 8px 4px 0;
+    }
+
+    /* === Modal dialog on dimmed stage === */
+    .pt-stage { position: relative; border-radius: var(--radius-sm); overflow: hidden; }
+    .pt-stage__back { position: absolute; inset: 0; opacity: .42; pointer-events: none; }
+    .pt-stage__mask {
+      position: relative; z-index: 1; background: rgba(29,39,34,.32);
+      padding: 14px;
+    }
+    .pt-dialog {
+      background: #fff; border-radius: var(--radius-md); width: 100%; max-width: 680px;
+      margin: 0 auto;
+      box-shadow: 0 10px 36px rgba(29,39,34,.28); overflow: hidden;
+    }
+    .pt-dialog--wide { max-width: 760px; }
+    .pt-dialog__hd {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 9px 14px; border-bottom: 1px solid var(--page-border);
+      font-size: 0.82rem; font-weight: 600;
+    }
+    .pt-dialog__hd .x { color: var(--page-text-muted); font-weight: 400; cursor: pointer; }
+    .pt-dialog__bd { padding: 14px; }
+    .pt-dialog__ft {
+      display: flex; justify-content: flex-end; gap: 8px;
+      padding: 9px 14px; border-top: 1px solid var(--page-border); background: var(--page-surface);
+    }
+    .pt-form-row { display: flex; align-items: flex-start; margin-bottom: 9px; font-size: 0.72rem; }
+    .pt-form-row > label { width: 86px; flex-shrink: 0; padding-top: 4px; color: var(--page-text-secondary); text-align: right; padding-right: 10px; }
+    .pt-form-row .req::before { content: "*"; color: var(--danger); margin-right: 2px; }
+    .pt-form-ctl { flex: 1; min-width: 0; }
+    .pt-form-input {
+      border: 1px solid var(--page-border); border-radius: var(--radius-sm);
+      padding: 4px 8px; font-size: 0.72rem; background: #fff; color: var(--page-text); min-width: 180px;
+    }
+    .pt-form-input--ph { color: var(--page-text-muted); }
+    .pt-form-input--err { border-color: var(--danger); }
+    .pt-form-err { color: var(--danger); font-size: 0.66rem; margin-top: 2px; }
+    .pt-form-tip { color: var(--page-text-muted); font-size: 0.66rem; margin-top: 2px; }
+    .pt-form-grid2 { display: flex; gap: 8px; flex-wrap: wrap; }
+    .pt-seg { display: inline-flex; border: 1px solid var(--page-border); border-radius: var(--radius-sm); overflow: hidden; }
+    .pt-seg span { padding: 3px 10px; font-size: 0.7rem; background: #fff; color: var(--page-text-secondary); border-right: 1px solid var(--page-border); }
+    .pt-seg span:last-child { border-right: none; }
+    .pt-seg .on { background: var(--page-brand); color: #fff; font-weight: 600; }
+    .pt-switch {
+      display: inline-block; width: 30px; height: 16px; border-radius: var(--radius-pill);
+      background: var(--page-border); position: relative; vertical-align: middle;
+    }
+    .pt-switch::after {
+      content: ""; position: absolute; width: 12px; height: 12px; border-radius: 50%;
+      background: #fff; top: 2px; left: 2px;
+    }
+    .pt-switch--on { background: var(--page-brand); }
+    .pt-switch--on::after { left: 16px; }
+    /* user-side preview card */
+    .pt-preview {
+      border: 1px dashed var(--page-brand); border-radius: var(--radius-md);
+      background: var(--page-brand-soft); padding: 12px;
+    }
+    .pt-preview h6 { font-size: 0.68rem; color: var(--page-brand-text); margin-bottom: 8px; }
+    .pt-preview__card {
+      background: #fff; border-radius: var(--radius-sm); padding: 10px;
+      box-shadow: 0 2px 8px rgba(0,135,60,.1);
+    }
+    .pt-preview__name { font-size: 0.8rem; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+    .pt-preview__price { color: var(--danger); font-size: 1.05rem; font-weight: 700; margin: 6px 0 2px; }
+    .pt-preview__price small { font-size: 0.62rem; font-weight: 400; color: var(--page-text-muted); }
+    .pt-preview__points { color: var(--page-brand); font-size: 0.72rem; font-weight: 600; }
+    .pt-preview__content { font-size: 0.66rem; color: var(--page-text-muted); margin: 6px 0; line-height: 1.6; }
+
+    /* === Points detail dialog === */
+    .pt-dlg-sub { font-size: 0.68rem; color: var(--page-text-muted); font-weight: 400; margin-left: 8px; }
+    .pt-dlg-tabs { display: flex; gap: 4px; padding: 10px 14px 0; border-bottom: 1px solid var(--page-border); }
+    .pt-dlg-tab { padding: 5px 14px; font-size: 0.74rem; color: var(--page-text-muted); border: 1px solid transparent; border-bottom: none; border-radius: 6px 6px 0 0; cursor: pointer; }
+    .pt-dlg-tab--on { color: var(--page-brand); background: var(--page-brand-soft); border-color: var(--page-brand-soft-strong); font-weight: 600; }
+    .pt-pills { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; margin-bottom: 8px; }
+    .pt-pill {
+      font-size: 0.68rem; padding: 2px 11px; border-radius: var(--radius-pill);
+      border: 1px solid var(--page-border); background: #fff; color: var(--page-text-secondary);
+    }
+    .pt-pill--on { background: var(--page-brand-text); border-color: var(--page-brand-text); color: #fff; font-weight: 600; }
+    .pt-date-range { font-size: 0.66rem; color: var(--page-text-muted); border: 1px solid var(--page-border); border-radius: var(--radius-sm); padding: 2px 8px; background: #fff; }
+    .pt-time2 { line-height: 1.35; }
+    .pt-time2 small { display: block; color: var(--page-text-muted); font-size: 0.64rem; }
+    .pt-conv-badge {
+      display: inline-block; max-width: 150px; overflow: hidden; text-overflow: ellipsis;
+      background: var(--page-surface-muted); color: var(--page-text-secondary);
+      border-radius: var(--radius-pill); padding: 1px 9px; font-size: 0.64rem; white-space: nowrap;
+    }
+    .pt-dialog__summary { display: flex; justify-content: space-between; align-items: center; font-size: 0.68rem; color: var(--page-text-muted); margin-top: 8px; }
+    .pt-pager-num { display: inline-flex; gap: 3px; align-items: center; }
+    .pt-pager-num span { min-width: 18px; text-align: center; border: 1px solid var(--page-border); border-radius: 3px; background: #fff; padding: 0 4px; font-size: 0.64rem; }
+    .pt-pager-num .on { background: var(--page-brand); border-color: var(--page-brand); color: #fff; }
+
+    /* === Test checklist === */
+    .checklist { list-style: none; margin-left: 0; }
+    .checklist li { padding-left: 1.4em; position: relative; margin-bottom: var(--space-2); }
+    .checklist li::before {
+      content: "☐"; position: absolute; left: 0; color: var(--page-brand); font-weight: 700;
+    }
+
+    /* === Callout === */
+    .callout {
+      border-left: 3px solid var(--page-brand); background: var(--page-brand-soft);
+      padding: var(--space-3) var(--space-4); margin: var(--space-3) 0; border-radius: 0 var(--radius-md) var(--radius-md) 0;
+      font-size: 0.9rem;
+    }
+    .callout--warn { border-left-color: var(--warning); background: #FFFBE6; }
+    .callout--danger { border-left-color: var(--danger); background: #FFF2F0; }
+
+    /* === 业务逻辑流程图 === */
+    .flow-map { padding: 24px; border: 1px solid var(--page-border); border-radius: var(--radius-lg); background: var(--page-surface); text-align: center; }
+    .flow-step { max-width: 670px; margin: auto; padding: 14px 20px; border: 1px solid var(--page-border); border-radius: var(--radius-md); background: #fff; }
+    .flow-step strong, .flow-source strong { display: block; color: var(--page-brand-text); }
+    .flow-step small, .flow-source small { display: block; color: var(--page-text-muted); font-size: .82rem; }
+    .flow-step--key { border-color: var(--page-brand); background: var(--page-brand-soft); }
+    .flow-arrow { height: 38px; display: grid; place-items: center; color: var(--page-brand); font-size: 24px; line-height: 1; }
+    .flow-sources { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; max-width: 670px; margin: auto; }
+    .flow-source { padding: 12px 8px; border: 1px solid var(--page-border); border-radius: var(--radius-md); background: #fff; }
+    .flow-caption { margin: 16px 0 0; font-size: .84rem; color: var(--page-text-secondary); }
+    .flow-map + .flow-map { margin-top: 24px; }
+    .flow-map h3 { margin: 0 0 8px; text-align: left; }
+    .flow-intro { margin: 0 0 20px; text-align: left; color: var(--page-text-secondary); font-size: .9rem; }
+    .flow-sources--two { grid-template-columns: repeat(2, 1fr); }
+    .flow-source small + small { margin-top: 8px; }
+    .flow-relation { margin: 20px 0; padding: 14px 18px; border-left: 3px solid var(--page-brand); background: var(--page-brand-soft); font-size: .9rem; }
+    .flow-branch { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; max-width: 670px; margin: auto; }
+    .flow-branch .flow-source--warn { border-color: var(--warning); background: #FFFBE6; }
+    .flow-branch .flow-source--danger { border-color: var(--danger); background: #FFF2F0; }
+    @media (max-width: 640px) { .flow-map { padding: 16px; } .flow-sources, .flow-branch { grid-template-columns: 1fr; } }
+
+    /* === Footer === */
+    footer { border-top: 2px solid var(--page-brand-soft-strong); padding-top: var(--space-4); color: var(--page-text-muted); font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+  <article class="page">
+    <header class="report-intro">
+      <div class="report-intro__surface">
+        <div class="report-intro__content">
+          <h1>店雷达后台 V3.0.6「AI积分」· 原型说明</h1>
+          <p class="report-intro__summary">
+            本次版本在后台新增 AI 积分能力：套餐管理支持配置「AI积分」，订单管理新增「AI订单」页面，
+            支持手工创建订单、赠送订单与用户积分充值/消耗明细查询。本文档面向前端、后端与测试，
+            每个页面包含带完整后台框架（侧边菜单 / 顶部导航 / 标签栏）的原型 Demo、业务逻辑与测试要点。
+          </p>
+          <div class="report-intro__meta">
+            <span>版本：V3.0.6</span>
+            <span>维护：店雷达 PM</span>
+            <span>更新：2026-10-10</span>
+            <span>在线原型：dev-mode.html → 业务管理 / 订单管理</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="page__content">
+      <nav class="toc">
+        <h2>目录</h2>
+        <ol>
+          <li><a href="#bg">需求背景</a></li>
+          <li><a href="#scope">改动范围</a></li>
+          <li><a href="#flow">逻辑流程图</a></li>
+          <li><a href="#m1">套餐列表</a></li>
+          <li><a href="#m2">创建编辑套餐</a></li>
+          <li><a href="#m3">AI订单列表</a></li>
+          <li><a href="#m4">手工订单</a></li>
+          <li><a href="#m5">赠送订单</a></li>
+          <li><a href="#m6">积分明细</a></li>
+          <li><a href="#m7">积分格式化</a></li>
+          <li><a href="#m8">接口需求</a></li>
+          <li><a href="#m9">测试要点</a></li>
+          <li><a href="#edge">待确认</a></li>
+        </ol>
+      </nav>
+
+      <main>
+        <!-- ==================== 背景 ==================== -->
+        <section id="bg">
+          <h2>一、需求背景</h2>
+          <p>
+            店雷达后台原有套餐体系围绕 MCP/API 服务设计，AI 能力上线后缺少两点支撑：
+          </p>
+          <ol>
+            <li>套餐无法表达「购买后一次性到账、按调用抵扣」的 AI 积分属性；</li>
+            <li>订单管理只有 MCP订单 视图，无法区分和查询 AI 类订单，也没有针对单个用户的积分充值 / 消耗流水视图。</li>
+          </ol>
+          <p>本版本在后台新增 AI 积分能力与 AI订单 模块，让运营可以配置带积分的 AI 套餐、手工创建或赠送 AI 订单，并追踪每个用户的积分使用情况。</p>
+          <h3>术语约定</h3>
+          <table>
+            <thead><tr><th width="22%">术语</th><th>含义</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>AI积分</td>
+                <td>用户购买 / 获赠 AI 套餐后一次性到账的额度，AI 功能调用时按次抵扣。数据字段沿用 <code>aiPoints</code>，展示单位为「积分」，大额展示为「x万积分」</td>
+              </tr>
+              <tr>
+                <td>AI订单</td>
+                <td>订单类型为 AI订单 的记录，来源分三种：线上订单（用户自助购买）、手工订单（运营创建）、赠送订单（运营赠送）</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="callout">
+            <strong>阅读对象：</strong>前端（页面与弹窗交互）、后端（订单 / 积分接口与校验）、测试（功能验收与回归）。
+            页面演示数据存于浏览器 localStorage，正式环境以接口数据为准。
+          </div>
+        </section>
+
+        <!-- ==================== 改动范围 ==================== -->
+        <section id="scope">
+          <h2>二、改动范围</h2>
+          <table>
+            <thead><tr><th width="24%">模块</th><th width="16%">改动类型</th><th>内容</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>业务管理 → 套餐管理</td>
+                <td>新增字段</td>
+                <td>套餐新增 AI积分 属性；列表新增「AI积分」列；创建 / 编辑表单新增 AI积分 必填项（仅 AI 服务类）</td>
+              </tr>
+              <tr>
+                <td>订单管理 → AI订单</td>
+                <td>新增页面</td>
+                <td>新增 AI订单 列表页（菜单项位于「MCP订单」下方），支持筛选、创建手工订单、创建赠送订单、导出、积分明细</td>
+              </tr>
+              <tr>
+                <td>存量数据</td>
+                <td>无侵入</td>
+                <td>不修改 MCP/API 套餐与订单的既有数据；新字段对非 AI 类套餐为空值，展示「--」</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <!-- ==================== 业务逻辑流程图 ==================== -->
+        <section id="flow">
+          <h2>业务逻辑流程图</h2>
+          <p>套餐管理维护商品配置，订单管理记录具体用户的交易。以下分别展示两个模块的操作流程。</p>
+          <div class="flow-map" role="group" aria-labelledby="flow-package-title">
+            <h3 id="flow-package-title">A · 套餐管理流程</h3>
+            <p class="flow-intro">入口：业务管理 → 套餐管理。管理对象：套餐名称、类型、积分、价格、时长与上架状态。</p>
+            <div class="flow-step"><strong>套餐列表 → 创建套餐 / 编辑套餐</strong><small>创建打开空表单；编辑回填当前套餐配置</small></div>
+            <div class="flow-arrow" aria-hidden="true">↓</div>
+            <div class="flow-step"><strong>填写套餐配置</strong><small>业务线选 AI 服务时，AI积分为必填正整数</small></div>
+            <div class="flow-arrow" aria-hidden="true">↓</div>
+            <div class="flow-step"><strong>校验表单</strong><small>校验失败 → 提示错误并留在表单修改；校验通过 → 选择保存方式</small></div>
+            <div class="flow-arrow" aria-hidden="true">↓</div>
+            <div class="flow-sources flow-sources--two" aria-label="套餐保存方式">
+              <div class="flow-source"><strong>保存并上架</strong><small>保存配置，套餐状态为上架</small></div>
+              <div class="flow-source"><strong>保存不上架</strong><small>保存配置，套餐保持未上架</small></div>
+            </div>
+            <div class="flow-arrow" aria-hidden="true">↓</div>
+            <div class="flow-step flow-step--key"><strong>更新套餐列表</strong><small>展示保存后的套餐配置与状态，套餐管理流程结束</small></div>
+            <p class="flow-caption">保存套餐只更新商品配置，不创建用户订单，也不给用户充值积分。</p>
+          </div>
+          <p class="flow-relation"><strong>两个模块的关联：</strong>创建订单时选择已有 AI 套餐，读取其积分与价格作为订单表单默认值。手工订单调整积分或支付金额，仅影响本笔订单，不回写套餐配置。</p>
+          <div class="flow-map" role="group" aria-labelledby="flow-order-title">
+            <h3 id="flow-order-title">B · 订单管理流程</h3>
+            <p class="flow-intro">入口：订单管理 → AI订单。管理对象：用户、订单号、来源、金额、积分与支付状态。</p>
+            <div class="flow-sources" aria-label="三种订单来源及各自操作">
+              <div class="flow-source"><strong>线上订单</strong><small>用户选择套餐并下单</small><small>待支付 → 支付成功变为已支付<br>未支付或已关闭不发放积分</small></div>
+              <div class="flow-source"><strong>手工订单</strong><small>运营填写主账号手机号、选择套餐</small><small>带出积分与价格，可调整<br>校验通过并创建 → 已支付</small></div>
+              <div class="flow-source"><strong>赠送订单</strong><small>运营填写主账号手机号、选择套餐</small><small>带出积分，交易金额为 0<br>校验通过并创建 → 已支付</small></div>
+            </div>
+            <p class="flow-caption">手工 / 赠送订单校验失败时，提示错误并留在表单修改；成功后进入下方到账流程。</p>
+            <div class="flow-arrow" aria-hidden="true">↓</div>
+            <div class="flow-step flow-step--key"><strong>已支付订单 → 本笔积分一次性到账</strong><small>更新用户剩余积分，记录充值明细；同一笔订单不重复发放</small></div>
+            <div class="flow-arrow" aria-hidden="true">↓</div>
+            <div class="flow-step"><strong>AI功能调用</strong><small>用户发起 AI 能力请求，系统读取当前剩余积分并执行额度校验</small></div>
+            <div class="flow-arrow" aria-hidden="true">↓</div>
+            <div class="flow-branch" aria-label="AI调用额度校验结果">
+              <div class="flow-source"><strong>余额充足</strong><small>扣减本次调用所需积分</small><small>调用成功，写入消耗明细</small></div>
+              <div class="flow-source flow-source--warn"><strong>余额不足</strong><small>阻止本次调用，不扣减积分</small><small>提示用户充值，保留当前余额</small></div>
+            </div>
+            <div class="flow-arrow" aria-hidden="true">↓</div>
+            <div class="flow-step"><strong>更新 AI订单列表 / 查看用户积分明细</strong><small>订单列表展示当前剩余积分；充值明细记录到账，消耗明细记录 AI 调用扣减</small></div>
+            <p class="flow-caption">积分明细按用户聚合；同一用户多笔订单的充值、AI 消耗与余额变化均可追溯。</p>
+          </div>
+        </section>
+
+        <!-- ==================== 页面一：套餐列表 ==================== -->
+        <section id="m1">
+          <h2>三、页面一 · 套餐管理（列表）</h2>
+          <p>入口：左侧菜单 <strong>业务管理 → 套餐管理</strong>。页面沿用后台标准框架：深色侧边菜单 + 顶部导航栏（汉堡 / 面包屑 / 搜索 / 管理员）+ 标签栏。</p>
+
+          <h3>原型 Demo</h3>
+          <div class="demo">
+            <div class="demo__bar">
+              <span class="demo__dot demo__dot--r"></span><span class="demo__dot demo__dot--y"></span><span class="demo__dot demo__dot--g"></span>
+              <span>套餐管理 · 侧边菜单 / 顶部导航 / 标签栏 / 筛选区 / 13 列列表（含 AI积分 新增列）</span>
+            </div>
+            <div class="demo__body" style="padding:10px;">
+              <div class="pt-admin">
+                <div class="pt-admin__shell">
+                  <!-- 侧边菜单 -->
+                  <aside class="pt-admin__side">
+                    <div class="pt-admin__logo">
+                      <span class="pt-admin__logo-badge">雷</span>
+                      <span class="pt-admin__logo-text">店雷达后台管理系统</span>
+                    </div>
+                    <div class="pt-admin__menu">
+                      <div class="pt-admin__menu-parent"><span>客户服务</span><span class="arrow">▾</span></div>
+                      <div class="pt-admin__menu-parent">客户管理</div>
+                      <div class="pt-admin__menu-parent"><span>订单管理</span><span class="arrow">▸</span></div>
+                      <div class="pt-admin__menu-parent"><span>优惠券管理</span><span class="arrow">▸</span></div>
+                      <div class="pt-admin__menu-parent"><span>代理邀请管理</span><span class="arrow">▸</span></div>
+                      <div class="pt-admin__menu-parent" style="color:#fff;"><span>业务管理</span><span class="arrow">▾</span></div>
+                      <div class="pt-admin__menu-child pt-admin__menu-child--active">套餐管理</div>
+                      <div class="pt-admin__menu-child">店铺管理</div>
+                      <div class="pt-admin__menu-child">功能埋点</div>
+                      <div class="pt-admin__menu-child">违禁词检测</div>
+                      <div class="pt-admin__menu-ellipsis">…</div>
+                      <div class="pt-admin__menu-parent"><span>运营管理</span><span class="arrow">▸</span></div>
+                      <div class="pt-admin__menu-parent"><span>分词管理</span><span class="arrow">▸</span></div>
+                    </div>
+                  </aside>
+                  <!-- 主区域 -->
+                  <div class="pt-admin__main">
+                    <div class="pt-admin__navbar">
+                      <span class="pt-admin__hamburger">☰</span>
+                      <span class="pt-admin__crumb"><a>首页</a><span class="sep">/</span>业务管理<span class="sep">/</span><span class="cur">套餐管理</span></span>
+                      <span class="pt-admin__search">🔍 Search</span>
+                      <span class="pt-admin__avatar">管</span>
+                      <span class="pt-admin__uname">admin ▾</span>
+                    </div>
+                    <div class="pt-admin__tags">
+                      <span class="pt-admin__tag pt-admin__tag--active">套餐管理 ×</span>
+                    </div>
+                    <div class="pt-admin__content">
+                      <!-- 筛选区 -->
+                      <div class="pt-admin__filters">
+                        <span class="pt-admin__filter-label">套餐类型：</span>
+                        <span class="pt-admin__select">全部生态 ▾</span>
+                        <span class="pt-admin__select">全部平台 ▾</span>
+                        <span class="pt-admin__select">全部类型 ▾</span>
+                        <span class="pt-admin__filter-label" style="margin-left:6px;">套餐状态：</span>
+                        <span class="pt-admin__select" style="min-width:78px;">全部 ▾</span>
+                        <input class="pt-admin__input" style="width:150px;" placeholder="请输入套餐名称" />
+                        <button class="pt-btn pt-btn--sm">搜索</button>
+                        <button class="pt-btn pt-btn--sm pt-btn--ghost">创建套餐</button>
+                        <button class="pt-btn pt-btn--sm pt-btn--ghost">设置套餐位置</button>
+                        <button class="pt-btn pt-btn--sm pt-btn--ghost">图搜插件</button>
+                      </div>
+                      <!-- 列表 -->
+                      <div class="pt-admin__card" style="overflow-x:auto;">
+                        <table class="pt-table">
+                          <thead>
+                            <tr>
+                              <th>所属类型</th><th>试用</th><th>套餐名称</th><th>优先级</th><th>原价</th><th>套餐价</th>
+                              <th>套餐时长</th><th>AI积分 <span class="pt-badge pt-badge--new">新增</span></th>
+                              <th>创建时间 ↕</th><th>状态</th><th>角标文字</th><th>套餐文字</th><th>操作</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>通用 / AI服务 / AI点数包</td><td>否</td><td>AI体验包（月）</td><td>0</td><td class="pt-muted">--</td>
+                              <td class="pt-num-red">¥9.9</td><td>月</td><td class="pt-num-green">10万积分</td>
+                              <td>2026-09-28 10:12</td><td><span class="pt-dot pt-dot--g"></span>上架</td><td>热门</td><td>AI选品对话 · 10万积分</td>
+                              <td><span class="pt-link">编辑</span> <span class="pt-link">修改</span> <span class="pt-link">下架</span></td>
+                            </tr>
+                            <tr>
+                              <td>通用 / AI服务 / AI点数包</td><td>否</td><td>AI标准包（月）</td><td>0</td><td class="pt-muted">--</td>
+                              <td class="pt-num-red">¥99</td><td>月</td><td class="pt-num-green">100万积分</td>
+                              <td>2026-09-28 10:15</td><td><span class="pt-dot pt-dot--g"></span>上架</td><td class="pt-muted">--</td><td>AI选品对话 · 100万积分</td>
+                              <td><span class="pt-link">编辑</span> <span class="pt-link">修改</span> <span class="pt-link">下架</span></td>
+                            </tr>
+                            <tr>
+                              <td>通用 / AI服务 / AI点数包</td><td>否</td><td>AI旗舰包（年）</td><td>0</td><td class="pt-muted">--</td>
+                              <td class="pt-num-red">¥499</td><td>年</td><td class="pt-num-green">1000万积分</td>
+                              <td>2026-09-28 10:18</td><td><span class="pt-dot pt-dot--g"></span>上架</td><td class="pt-muted">--</td><td>AI选品对话 · 1000万积分</td>
+                              <td><span class="pt-link">编辑</span> <span class="pt-link">修改</span> <span class="pt-link">下架</span></td>
+                            </tr>
+                            <tr>
+                              <td>Ozon / 会员套餐 / 月度版</td><td>否</td><td>MCP月度版</td><td>1</td><td class="pt-num-red">¥199</td>
+                              <td class="pt-num-red">¥99</td><td>月</td><td class="pt-muted">--</td>
+                              <td>2026-08-12 09:30</td><td><span class="pt-dot pt-dot--g"></span>上架</td><td class="pt-muted">--</td><td>MCP接口月度调用权益</td>
+                              <td><span class="pt-link">编辑</span> <span class="pt-link">修改</span> <span class="pt-link">下架</span></td>
+                            </tr>
+                            <tr>
+                              <td>通用 / AI服务 / AI点数包</td><td>否</td><td>AI体验包-已下架</td><td>0</td><td class="pt-muted">--</td>
+                              <td class="pt-num-red">¥19.9</td><td>月</td><td class="pt-num-green">10万积分</td>
+                              <td>2026-07-01 16:42</td><td><span class="pt-dot pt-dot--gray"></span>下架</td><td class="pt-muted">--</td><td>AI选品对话 · 10万积分</td>
+                              <td><span class="pt-link">编辑</span> <span class="pt-link">修改</span> <span class="pt-link">上架</span></td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="pt-admin__pager">
+                        <span>共 13 条</span>
+                        <span class="pt-pager-num"><span>‹</span><span class="on">1</span><span>2</span><span>›</span> &nbsp;每页 10 条</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <h3>业务逻辑</h3>
+          <table>
+            <thead><tr><th width="26%">项目</th><th>规则</th></tr></thead>
+            <tbody>
+              <tr><td>列表字段（13 列）</td><td>所属类型、是否试用、套餐名称、套餐优先级、原价（元）、套餐价（元）、套餐时长、<strong>AI积分（表头带「新增」徽标）</strong>、创建时间、套餐状态、角标文字、套餐文字、操作</td></tr>
+              <tr><td>AI积分 列</td><td>AI 服务类套餐显示格式化积分（10万积分 / 100万积分 / 1000万积分，规则见<a href="#m7">第九节</a>）；非 AI 类套餐显示「--」</td></tr>
+              <tr><td>筛选</td><td>套餐类型（生态 × 平台 / 业务线 × 类型，三级联动）+ 套餐状态 + 套餐名称模糊搜索；点「搜索」生效</td></tr>
+              <tr><td>排序与分页</td><td>创建时间支持升 / 降序切换；每页 10 条，底部分页并显示总条数</td></tr>
+              <tr><td>操作列</td><td>编辑、修改、上架 / 下架（按当前状态互斥显示，下架态显示「上架」）</td></tr>
+              <tr><td>上架 / 下架</td><td>行内直接切换，即时生效并 toast 反馈，<strong>无需二次确认</strong></td></tr>
+              <tr><td>其他按钮</td><td>创建套餐（见<a href="#m2">第四节</a>）、设置套餐位置、图搜插件，沿用既有逻辑</td></tr>
+            </tbody>
+          </table>
+
+          <h3>测试要点</h3>
+          <ul class="checklist">
+            <li>菜单入口：业务管理 → 套餐管理，选中态绿色高亮；面包屑为 首页 / 业务管理 / 套餐管理，标签栏出现「套餐管理」</li>
+            <li>AI积分 列表头带「新增」徽标；AI 套餐显示格式化积分，非 AI 套餐显示「--」</li>
+            <li>三级联动筛选 + 状态 + 名称组合搜索结果正确，清空后恢复全量</li>
+            <li>创建时间升降序切换正常；每页 10 条分页与总条数正确</li>
+            <li>上架 / 下架即时切换，按钮按状态互斥显示，toast 正常</li>
+            <li>13 列在 1200px 最小宽度下无异常挤压，表格区域可横向滚动</li>
+          </ul>
+        </section>
+
+        <!-- ==================== 页面一：创建/编辑弹窗 ==================== -->
+        <section id="m2">
+          <h2>四、页面一 · 创建 / 编辑套餐弹窗</h2>
+          <p>点击「创建套餐」或列表「编辑 / 修改」均打开<strong>同一弹窗</strong>（创建标题为「创建套餐」，编辑标题为「编辑套餐」）。弹窗左侧为表单，右侧实时预览用户侧套餐卡片。</p>
+
+          <h3>原型 Demo · 创建 AI 套餐（AI积分必填校验）</h3>
+          <div class="demo">
+            <div class="demo__bar">
+              <span class="demo__dot demo__dot--r"></span><span class="demo__dot demo__dot--y"></span><span class="demo__dot demo__dot--g"></span>
+              <span>创建套餐弹窗 · 左表单 / 右用户侧预览 · AI服务类未填 AI积分 提交报错</span>
+            </div>
+            <div class="demo__body" style="padding:10px;">
+              <div class="pt-stage">
+                <div class="pt-stage__back">
+                  <div class="pt-admin"><div class="pt-admin__shell">
+                    <aside class="pt-admin__side" style="width:120px;">
+                      <div class="pt-admin__logo"><span class="pt-admin__logo-badge">雷</span><span class="pt-admin__logo-text">店雷达后台</span></div>
+                    </aside>
+                    <div class="pt-admin__main">
+                      <div class="pt-admin__navbar">
+                        <span class="pt-admin__hamburger">☰</span>
+                        <span class="pt-admin__crumb">首页<span class="sep">/</span>业务管理<span class="sep">/</span><span class="cur">套餐管理</span></span>
+                        <span class="pt-admin__avatar">管</span><span class="pt-admin__uname">admin</span>
+                      </div>
+                      <div class="pt-admin__tags"><span class="pt-admin__tag pt-admin__tag--active">套餐管理 ×</span></div>
+                      <div class="pt-admin__content" style="min-height:260px;"></div>
+                    </div>
+                  </div></div>
+                </div>
+                <div class="pt-stage__mask">
+                  <div class="pt-dialog pt-dialog--wide">
+                    <div class="pt-dialog__hd">
+                      <span>创建套餐（套餐在用户侧展示顺序按优先级低到高，同级按先创建先展示）</span><span class="x">×</span>
+                    </div>
+                    <div class="pt-dialog__bd" style="display:flex;gap:16px;">
+                      <!-- 左：表单 -->
+                      <div style="flex:1.5;min-width:0;">
+                        <div class="pt-form-row">
+                          <label><span class="req">选择类型</span></label>
+                          <div class="pt-form-ctl">
+                            <div class="pt-form-grid2">
+                              <span class="pt-form-input" style="min-width:0;flex:1;">通用生态 ▾</span>
+                              <span class="pt-form-input" style="min-width:0;flex:1;">AI服务 ▾</span>
+                              <span class="pt-form-input" style="min-width:0;flex:1;">AI点数包 ▾</span>
+                            </div>
+                            <div class="pt-form-tip">生态 × 业务线 × 类型三级联动，未选完整不允许提交</div>
+                          </div>
+                        </div>
+                        <div class="pt-form-row">
+                          <label>套餐优先级</label>
+                          <div class="pt-form-ctl">
+                            <div class="pt-seg"><span class="on">0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span></div>
+                            <span class="pt-form-tip" style="margin-left:8px;">数字越大优先级越高</span>
+                          </div>
+                        </div>
+                        <div class="pt-form-row">
+                          <label><span class="req">套餐名称</span></label>
+                          <div class="pt-form-ctl"><span class="pt-form-input" style="display:inline-block;min-width:220px;">AI标准包（月）</span></div>
+                        </div>
+                        <div class="pt-form-row">
+                          <label>是否试用</label>
+                          <div class="pt-form-ctl" style="padding-top:3px;"><span class="pt-switch"></span></div>
+                        </div>
+                        <div class="pt-form-row">
+                          <label>套餐价 / 原价</label>
+                          <div class="pt-form-ctl">
+                            <span class="pt-form-input pt-form-input--ph" style="width:90px;">99 元</span>
+                            <span class="pt-form-input pt-form-input--ph" style="width:90px;margin-left:6px;">原价 元</span>
+                          </div>
+                        </div>
+                        <div class="pt-form-row">
+                          <label>套餐时长</label>
+                          <div class="pt-form-ctl">
+                            <div class="pt-seg"><span>年</span><span>半年</span><span>季度</span><span class="on">月</span><span>7天</span><span>自定义</span></div>
+                          </div>
+                        </div>
+                        <div class="pt-form-row">
+                          <label>角标文案</label>
+                          <div class="pt-form-ctl">
+                            <span class="pt-form-input pt-form-input--ph" style="width:160px;">最长 10 字</span>
+                          </div>
+                        </div>
+                        <div class="pt-form-row">
+                          <label>套餐内容</label>
+                          <div class="pt-form-ctl">
+                            <span class="pt-form-input pt-form-input--ph" style="display:block;min-height:44px;padding-top:5px;">每月 100 万 AI 积分，支持选品对话、报告生成…</span>
+                          </div>
+                        </div>
+                        <div class="pt-form-row">
+                          <label>赠送套餐</label>
+                          <div class="pt-form-ctl"><span class="pt-form-input pt-form-input--ph" style="min-width:180px;">无 ▾</span></div>
+                        </div>
+                        <div class="pt-form-row">
+                          <label><span class="req">AI积分</span></label>
+                          <div class="pt-form-ctl">
+                            <span class="pt-form-input pt-form-input--err" style="width:140px;">请输入</span>
+                            <span class="pt-form-tip" style="display:inline;margin-left:8px;">单位：积分，正整数；购买后一次性到账</span>
+                            <div class="pt-form-err">请输入AI积分</div>
+                          </div>
+                        </div>
+                      </div>
+                      <!-- 右：用户侧预览 -->
+                      <div class="pt-preview" style="flex:1;min-width:0;">
+                        <h6>用户侧预览</h6>
+                        <div class="pt-preview__card">
+                          <div class="pt-preview__name">AI标准包（月）</div>
+                          <div class="pt-preview__price">¥99 <small>/ 月</small></div>
+                          <div class="pt-preview__points">🪙 100万积分 · 一次性到账</div>
+                          <div class="pt-preview__content">每月 100 万 AI 积分，支持选品对话、报告生成，按调用抵扣。</div>
+                          <button class="pt-btn pt-btn--sm" style="width:100%;">立即购买</button>
+                        </div>
+                        <div class="pt-form-tip" style="margin-top:8px;">名称、价格、角标、AI积分、内容随表单实时更新</div>
+                      </div>
+                    </div>
+                    <div class="pt-dialog__ft">
+                      <button class="pt-btn pt-btn--ghost">取 消</button>
+                      <button class="pt-btn pt-btn--sm pt-btn--ghost">保存不上架</button>
+                      <button class="pt-btn pt-btn--sm">创建并上架</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <h3>表单字段规则</h3>
+          <table>
+            <thead><tr><th width="18%">字段</th><th width="14%">必填</th><th width="30%">类型 / 取值</th><th>校验与规则</th></tr></thead>
+            <tbody>
+              <tr><td>选择类型</td><td>是</td><td>生态 × 业务线 × 类型 三级下拉联动</td><td>生态：Ozon生态 / 拼多多生态 / 阿里生态 / 通用；业务线：会员套餐 / 服务 / <strong>AI服务</strong>；类型随业务线联动（AI服务 → AI点数包）。未选完整不允许提交</td></tr>
+              <tr><td>套餐优先级</td><td>否</td><td>单选 0–5，默认 0</td><td>数字越大优先级越高；用户侧展示顺序按优先级低到高，同级按创建时间先后</td></tr>
+              <tr><td>套餐名称</td><td>是</td><td>文本</td><td>非空校验</td></tr>
+              <tr><td>是否试用</td><td>否</td><td>开关，默认关</td><td>—</td></tr>
+              <tr><td>套餐价 / 原价</td><td>否</td><td>文本（元）</td><td>非必填，空则列表显示「--」</td></tr>
+              <tr><td>套餐时长</td><td>否</td><td>年 / 半年 / 季度 / 月 / 7天 + 自定义天数</td><td>选「自定义天数」时填天数，展示为「x天」</td></tr>
+              <tr><td>角标文案</td><td>否</td><td>文本，最长 10 字</td><td>前端 maxlength 截断</td></tr>
+              <tr><td>套餐内容</td><td>否</td><td>多行文本</td><td>用户侧预览展示</td></tr>
+              <tr><td>赠送套餐</td><td>否</td><td>下拉，默认「无」</td><td>选择后随套餐一起下发</td></tr>
+              <tr><td><strong>AI积分</strong></td><td>条件必填</td><td>正整数，单位积分</td><td>业务线 = AI服务 时必填，为空提交报错「请输入AI积分」；0 / 负数 / 非数字拦截。购买后一次性到账，用于 AI 功能调用抵扣</td></tr>
+            </tbody>
+          </table>
+
+          <div class="callout callout--warn">
+            <strong>关键规则：</strong>AI积分 仅在业务线选择「AI服务」时出现并必填；切换为其他业务线时隐藏该字段且不作为提交字段（非 AI 类套餐传空）。
+          </div>
+
+          <h3>交互与状态</h3>
+          <ul>
+            <li><strong>创建成功：</strong>弹窗关闭、列表刷新、新记录按创建时间排序展示，toast「创建并上架成功」。</li>
+            <li><strong>编辑 / 修改：</strong>与创建共用同一弹窗，标题为「编辑套餐」，回填全部字段（AI积分 按原始整数回填），按钮为「保存并上架 / 保存不上架」；不再有独立改价弹窗。</li>
+            <li><strong>右侧预览：</strong>名称、价格、角标、AI积分、套餐内容随输入实时更新。</li>
+          </ul>
+
+          <h3>测试要点</h3>
+          <ul class="checklist">
+            <li>创建 AI 套餐不填 AI积分 → 拦截并提示「请输入AI积分」；非 AI 类套餐无此字段，可正常提交</li>
+            <li>AI积分 输入 0、负数、小数、非数字均被拦截（仅正整数）</li>
+            <li>三级联动：业务线切到 AI服务 后类型出现 AI点数包，AI积分 字段出现；切走后隐藏</li>
+            <li>编辑 / 修改打开同一弹窗，全部字段正确回填，AI积分 为原始整数（1000000 而非 100万）</li>
+            <li>右侧用户侧预览随表单实时更新，积分按万格式展示</li>
+            <li>角标文案超过 10 字被截断；自定义天数时长展示为「x天」</li>
+          </ul>
+        </section>
+
+        <!-- ==================== 页面二：AI订单列表 ==================== -->
+        <section id="m3">
+          <h2>五、页面二 · AI订单（列表）</h2>
+          <p>入口：左侧菜单 <strong>订单管理 → AI订单</strong>，菜单项位于「MCP订单」下方，选中态高亮。</p>
+
+          <h3>原型 Demo</h3>
+          <div class="demo">
+            <div class="demo__bar">
+              <span class="demo__dot demo__dot--r"></span><span class="demo__dot demo__dot--y"></span><span class="demo__dot demo__dot--g"></span>
+              <span>AI订单 · 订单管理菜单展开 / 19 列横向滚动 / 筛选区 / 创建手工订单 / 创建赠送订单 / 明细</span>
+            </div>
+            <div class="demo__body" style="padding:10px;">
+              <div class="pt-admin">
+                <div class="pt-admin__shell">
+                  <aside class="pt-admin__side">
+                    <div class="pt-admin__logo">
+                      <span class="pt-admin__logo-badge">雷</span>
+                      <span class="pt-admin__logo-text">店雷达后台管理系统</span>
+                    </div>
+                    <div class="pt-admin__menu">
+                      <div class="pt-admin__menu-parent"><span>客户服务</span><span class="arrow">▸</span></div>
+                      <div class="pt-admin__menu-parent">客户管理</div>
+                      <div class="pt-admin__menu-parent" style="color:#fff;"><span>订单管理</span><span class="arrow">▾</span></div>
+                      <div class="pt-admin__menu-child">全部订单</div>
+                      <div class="pt-admin__menu-child">待支付订单</div>
+                      <div class="pt-admin__menu-child">MCP订单</div>
+                      <div class="pt-admin__menu-child pt-admin__menu-child--active">AI订单</div>
+                      <div class="pt-admin__menu-parent"><span>优惠券管理</span><span class="arrow">▸</span></div>
+                      <div class="pt-admin__menu-parent"><span>代理邀请管理</span><span class="arrow">▸</span></div>
+                      <div class="pt-admin__menu-parent"><span>业务管理</span><span class="arrow">▸</span></div>
+                      <div class="pt-admin__menu-ellipsis">…</div>
+                    </div>
+                  </aside>
+                  <div class="pt-admin__main">
+                    <div class="pt-admin__navbar">
+                      <span class="pt-admin__hamburger">☰</span>
+                      <span class="pt-admin__crumb"><a>首页</a><span class="sep">/</span>订单管理<span class="sep">/</span><span class="cur">AI订单</span></span>
+                      <span class="pt-admin__search">🔍 Search</span>
+                      <span class="pt-admin__avatar">管</span>
+                      <span class="pt-admin__uname">admin ▾</span>
+                    </div>
+                    <div class="pt-admin__tags">
+                      <span class="pt-admin__tag pt-admin__tag--active">AI订单 ×</span>
+                    </div>
+                    <div class="pt-admin__content">
+                      <div class="pt-admin__filters">
+                        <span class="pt-admin__filter-label">创建时间：</span>
+                        <span class="pt-date-range">2026-09-10 ~ 2026-10-10</span>
+                        <span class="pt-admin__filter-label">订单状态：</span>
+                        <span class="pt-admin__select" style="min-width:84px;">全部 ▾</span>
+                        <span class="pt-admin__filter-label">是否续费：</span>
+                        <span class="pt-admin__select" style="min-width:70px;">全部 ▾</span>
+                        <span class="pt-admin__filter-label">订单类型：</span>
+                        <span class="pt-admin__select" style="min-width:84px;">AI订单 ▾</span>
+                        <span class="pt-admin__filter-label">订单来源：</span>
+                        <span class="pt-admin__select" style="min-width:92px;">全部 ▾</span>
+                        <input class="pt-admin__input" style="width:130px;" placeholder="请输入手机号" />
+                        <button class="pt-btn pt-btn--sm">搜索</button>
+                        <button class="pt-btn pt-btn--sm pt-btn--ghost">创建手工订单</button>
+                        <button class="pt-btn pt-btn--sm pt-btn--ghost">创建赠送订单</button>
+                        <button class="pt-btn pt-btn--sm pt-btn--ghost">导出订单</button>
+                      </div>
+                      <div class="pt-admin__card" style="overflow-x:auto;">
+                        <table class="pt-table">
+                          <thead>
+                            <tr>
+                              <th>手机号</th><th>微信昵称</th><th>续费/次数</th><th>订单类型</th><th>套餐名称</th>
+                              <th>AI积分</th><th>剩余积分</th><th>今日消耗</th><th>套餐时长</th>
+                              <th>商品金额</th><th>优惠</th><th>交易金额</th><th>订单状态</th><th>订单来源</th>
+                              <th>创建时间</th><th>结束时间</th><th>订单编号</th><th>备注</th><th>操作</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td>138****6621</td><td>旺财选品</td><td>否 / 0</td><td>AI订单 <span class="pt-badge">AI</span></td>
+                              <td>AI体验包（月）</td><td class="pt-num-green">10万</td><td>98万</td><td class="pt-num-red">320</td><td>月</td>
+                              <td>9.90</td><td>0.00</td><td class="pt-num-red">9.90</td>
+                              <td><span class="pt-dot pt-dot--g"></span>已支付</td><td>线上订单</td>
+                              <td>2026-10-08 10:12</td><td>2026-11-08 10:12</td><td><code>dld20261008101205001</code></td>
+                              <td class="pt-muted">--</td><td><span class="pt-link--muted">使用</span> <span class="pt-link">明细</span></td>
+                            </tr>
+                            <tr>
+                              <td>139****8810</td><td>小北电商</td><td>否 / 0</td><td>AI订单 <span class="pt-badge">AI</span></td>
+                              <td>AI标准包（月）</td><td class="pt-num-green">100万</td><td>100万</td><td>0</td><td>月</td>
+                              <td>99.00</td><td>0.00</td><td class="pt-num-red">99.00</td>
+                              <td><span class="pt-dot pt-dot--g"></span>已支付</td><td>手工订单</td>
+                              <td>2026-10-09 14:36</td><td>2026-11-09 14:36</td><td><code>dld20261009143622007</code></td>
+                              <td class="pt-muted">--</td><td><span class="pt-link--muted">使用</span> <span class="pt-link">明细</span></td>
+                            </tr>
+                            <tr>
+                              <td>137****0045</td><td>达人小林</td><td>否 / 0</td><td>AI订单 <span class="pt-badge">AI</span></td>
+                              <td>AI旗舰包（年）</td><td class="pt-num-green">1000万</td><td>986万</td><td class="pt-num-red">18</td><td>年</td>
+                              <td>499.00</td><td>499.00</td><td class="pt-num-red">0.00</td>
+                              <td><span class="pt-dot pt-dot--g"></span>已支付</td><td>赠送订单</td>
+                              <td>2026-10-09 18:02</td><td>2027-10-09 18:02</td><td><code>dld20261009180244013</code></td>
+                              <td title="KOL合作赠送，年度合作权益">KOL合作赠送…</td>
+                              <td><span class="pt-link--muted">使用</span> <span class="pt-link">明细</span></td>
+                            </tr>
+                            <tr>
+                              <td>135****2276</td><td>阿强百货</td><td>否 / 0</td><td>AI订单 <span class="pt-badge">AI</span></td>
+                              <td>AI体验包（月）</td><td class="pt-num-green">10万</td><td class="pt-muted">--</td><td>0</td><td>月</td>
+                              <td>9.90</td><td>0.00</td><td class="pt-num-red">9.90</td>
+                              <td><span class="pt-dot pt-dot--y"></span>待支付</td><td>线上订单</td>
+                              <td>2026-10-10 09:20</td><td class="pt-muted">--</td><td><code>dld20261010092011042</code></td>
+                              <td class="pt-muted">--</td><td><span class="pt-link--muted">使用</span> <span class="pt-link">明细</span></td>
+                            </tr>
+                            <tr>
+                              <td>138****6621</td><td>旺财选品</td><td>是 / 1</td><td>AI订单 <span class="pt-badge">AI</span></td>
+                              <td>AI体验包（月）</td><td class="pt-num-green">10万</td><td class="pt-muted">--</td><td>0</td><td>月</td>
+                              <td>9.90</td><td>0.00</td><td>0.00</td>
+                              <td><span class="pt-dot pt-dot--gray"></span>已关闭</td><td>线上订单</td>
+                              <td>2026-10-01 08:00</td><td class="pt-muted">--</td><td><code>dld20261001080033088</code></td>
+                              <td class="pt-muted">--</td><td><span class="pt-link--muted">使用</span> <span class="pt-link">明细</span></td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="pt-admin__pager">
+                        <span>共 48 条</span>
+                        <span class="pt-pager-num"><span>‹</span><span class="on">1</span><span>2</span><span>3</span><span>…</span><span>5</span><span>›</span> &nbsp;每页 10 条</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <h3>业务逻辑</h3>
+          <h4>列表字段（19 列）</h4>
+          <p>手机号、微信昵称、是否续费 / 续费次数、订单类型（AI订单 + <span class="pt-badge">AI</span> 标签）、套餐名称、AI积分、剩余积分、今日消耗、套餐时长、商品金额、优惠金额、交易金额、订单状态、订单来源、创建时间、结束时间、订单编号、备注、操作。</p>
+          <ul>
+            <li><strong>订单状态：</strong><span class="pt-dot pt-dot--g"></span>已支付（绿点）/ <span class="pt-dot pt-dot--y"></span>待支付（黄点）/ <span class="pt-dot pt-dot--gray"></span>已关闭（灰点）。</li>
+            <li><strong>订单来源：</strong>线上订单 / 手工订单 / 赠送订单。</li>
+            <li><strong>积分列：</strong>AI积分、剩余积分按万格式展示（见<a href="#m7">第九节</a>）；今日消耗为当日累计消耗；空值显示「--」。</li>
+            <li><strong>备注列：</strong>展示赠送订单填写的赠送原因；无备注显示「--」；超长截断，悬停显示全文。</li>
+            <li><strong>操作列：</strong>「使用」（占位，本期不实现，置灰无跳转）+「明细」（见<a href="#m6">第八节</a>）。</li>
+          </ul>
+          <h4>筛选规则</h4>
+          <table>
+            <thead><tr><th width="20%">筛选项</th><th width="36%">取值</th><th>逻辑</th></tr></thead>
+            <tbody>
+              <tr><td>创建时间</td><td>开始 / 结束日期</td><td>按订单创建时间过滤</td></tr>
+              <tr><td>订单状态</td><td>全部 / 待支付 / 已支付 / 已关闭</td><td>精确匹配</td></tr>
+              <tr><td>是否续费订单</td><td>全部 / 是 / 否</td><td>按续费标记匹配</td></tr>
+              <tr><td>订单类型</td><td>全部 / AI订单</td><td>本期列表固定 AI订单，保留筛选项与后端字段对齐</td></tr>
+              <tr><td>订单来源</td><td>全部 / 线上订单 / 手工订单 / 赠送订单</td><td>精确匹配</td></tr>
+              <tr><td>手机号</td><td>文本</td><td>模糊匹配</td></tr>
+            </tbody>
+          </table>
+          <div class="callout">
+            <strong>导出订单：</strong>按当前筛选条件导出全部结果，字段同列表；导出权限复用现有 MCP订单 导出权限。
+          </div>
+
+          <h3>测试要点</h3>
+          <ul class="checklist">
+            <li>菜单入口位于「MCP订单」下方，选中态绿色高亮；面包屑 首页 / 订单管理 / AI订单，标签栏「AI订单」</li>
+            <li>19 列横向滚动流畅，各列无异常换行 / 挤压；状态圆点绿 / 黄 / 灰正确</li>
+            <li>订单类型列显示「AI订单 + AI 标签」；积分三列按万格式展示，空值为「--」</li>
+            <li>备注超长截断且悬停显示全文；无备注显示「--」</li>
+            <li>「使用」按钮本期占位，置灰、点击无跳转、无报错；「明细」打开积分明细弹窗</li>
+            <li>筛选组合（状态 + 来源 + 手机号模糊 + 时间区间）结果正确，清空恢复全量；底部分页与总条数正确</li>
+          </ul>
+        </section>
+
+        <!-- ==================== 手工订单 ==================== -->
+        <section id="m4">
+          <h2>六、页面二 · 创建手工订单弹窗</h2>
+          <p>点击列表筛选区「创建手工订单」打开弹窗。选择套餐后自动带出该套餐的 AI积分 与价格，均可手工调整。</p>
+
+          <h3>原型 Demo</h3>
+          <div class="demo">
+            <div class="demo__bar">
+              <span class="demo__dot demo__dot--r"></span><span class="demo__dot demo__dot--y"></span><span class="demo__dot demo__dot--g"></span>
+              <span>创建手工订单 · 手机号 / 选择套餐带出积分与价格 / AI积分 / 支付金额</span>
+            </div>
+            <div class="demo__body" style="padding:10px;">
+              <div class="pt-stage">
+                <div class="pt-stage__back">
+                  <div class="pt-admin"><div class="pt-admin__shell">
+                    <aside class="pt-admin__side" style="width:120px;">
+                      <div class="pt-admin__logo"><span class="pt-admin__logo-badge">雷</span><span class="pt-admin__logo-text">店雷达后台</span></div>
+                    </aside>
+                    <div class="pt-admin__main">
+                      <div class="pt-admin__navbar">
+                        <span class="pt-admin__hamburger">☰</span>
+                        <span class="pt-admin__crumb">首页<span class="sep">/</span>订单管理<span class="sep">/</span><span class="cur">AI订单</span></span>
+                        <span class="pt-admin__avatar">管</span><span class="pt-admin__uname">admin</span>
+                      </div>
+                      <div class="pt-admin__tags"><span class="pt-admin__tag pt-admin__tag--active">AI订单 ×</span></div>
+                      <div class="pt-admin__content" style="min-height:240px;"></div>
+                    </div>
+                  </div></div>
+                </div>
+                <div class="pt-stage__mask">
+                  <div class="pt-dialog" style="max-width:440px;">
+                    <div class="pt-dialog__hd"><span>创建手工订单</span><span class="x">×</span></div>
+                    <div class="pt-dialog__bd">
+                      <div class="pt-form-row">
+                        <label><span class="req">手机号</span></label>
+                        <div class="pt-form-ctl">
+                          <span class="pt-form-input" style="display:inline-block;width:100%;">13988886621</span>
+                          <div class="pt-form-tip">11 位、1 开头；须为主账号（后端校验）</div>
+                        </div>
+                      </div>
+                      <div class="pt-form-row">
+                        <label><span class="req">选择套餐</span></label>
+                        <div class="pt-form-ctl">
+                          <span class="pt-form-input" style="display:inline-block;width:100%;">AI标准包（月） · 100万积分 / ¥99 ▾</span>
+                          <div class="pt-form-tip">下拉仅列 AI 套餐：AI体验包（月）/ AI标准包（月）/ AI旗舰包（年）</div>
+                        </div>
+                      </div>
+                      <div class="pt-form-row">
+                        <label><span class="req">AI积分</span></label>
+                        <div class="pt-form-ctl">
+                          <span class="pt-form-input" style="display:inline-block;width:140px;">1000000</span>
+                          <span class="pt-form-tip" style="display:inline;margin-left:8px;">跟随套餐带出，可手工修改</span>
+                        </div>
+                      </div>
+                      <div class="pt-form-row">
+                        <label>支付金额</label>
+                        <div class="pt-form-ctl">
+                          <span class="pt-form-input pt-form-input--ph" style="display:inline-block;width:140px;">99 元</span>
+                          <span class="pt-form-tip" style="display:inline;margin-left:8px;">实收金额；为空取套餐价</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="pt-dialog__ft">
+                      <button class="pt-btn pt-btn--ghost">取 消</button>
+                      <button class="pt-btn pt-btn--sm">确定创建</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <h3>字段规则</h3>
+          <table>
+            <thead><tr><th width="18%">字段</th><th width="14%">必填</th><th>校验</th></tr></thead>
+            <tbody>
+              <tr><td>手机号</td><td>是</td><td>11 位、1 开头；必须是主账号（后端校验，非主账号给出错误提示）</td></tr>
+              <tr><td>选择套餐</td><td>是</td><td>下拉仅列 AI 套餐（AI体验包（月）/ AI标准包（月）/ AI旗舰包（年））；选中后自动带出该套餐积分与价格，可手工调整</td></tr>
+              <tr><td>AI积分</td><td>是</td><td>跟随套餐带出，可改；正整数；为空提交报错</td></tr>
+              <tr><td>支付金额</td><td>否</td><td>实收金额（元）；为空时取套餐价</td></tr>
+            </tbody>
+          </table>
+          <div class="callout">
+            <strong>创建成功：</strong>订单插入列表顶部，状态「已支付」（绿点），来源「手工订单」，积分一次性计入 AI积分 与 剩余积分；订单号按 <code>dld + yyyyMMddHHmmss + 3位随机</code> 生成并查重。
+          </div>
+
+          <h3>测试要点</h3>
+          <ul class="checklist">
+            <li>手机号非 11 位 / 非 1 开头 → 前端拦截；非主账号 → 后端错误提示</li>
+            <li>未选套餐 → 拦截；选择套餐后 AI积分 与支付金额自动带出且可手工修改</li>
+            <li>AI积分 为空 / 0 / 负数提交被拦截</li>
+            <li>创建成功后新订单在列表顶部：已支付、手工订单、交易金额=实付、AI积分=剩余积分=所填积分</li>
+          </ul>
+        </section>
+
+        <!-- ==================== 赠送订单 ==================== -->
+        <section id="m5">
+          <h2>七、页面二 · 创建赠送订单弹窗</h2>
+          <p>点击「创建赠送订单」打开弹窗。赠送订单交易金额为 0，备注（赠送原因）写入列表备注列。</p>
+
+          <h3>原型 Demo</h3>
+          <div class="demo">
+            <div class="demo__bar">
+              <span class="demo__dot demo__dot--r"></span><span class="demo__dot demo__dot--y"></span><span class="demo__dot demo__dot--g"></span>
+              <span>创建赠送订单 · 手机号 / 套餐带出积分 / 赠送时长 / 赠送AI积分 / 备注≤20字</span>
+            </div>
+            <div class="demo__body" style="padding:10px;">
+              <div class="pt-stage">
+                <div class="pt-stage__back">
+                  <div class="pt-admin"><div class="pt-admin__shell">
+                    <aside class="pt-admin__side" style="width:120px;">
+                      <div class="pt-admin__logo"><span class="pt-admin__logo-badge">雷</span><span class="pt-admin__logo-text">店雷达后台</span></div>
+                    </aside>
+                    <div class="pt-admin__main">
+                      <div class="pt-admin__navbar">
+                        <span class="pt-admin__hamburger">☰</span>
+                        <span class="pt-admin__crumb">首页<span class="sep">/</span>订单管理<span class="sep">/</span><span class="cur">AI订单</span></span>
+                        <span class="pt-admin__avatar">管</span><span class="pt-admin__uname">admin</span>
+                      </div>
+                      <div class="pt-admin__tags"><span class="pt-admin__tag pt-admin__tag--active">AI订单 ×</span></div>
+                      <div class="pt-admin__content" style="min-height:240px;"></div>
+                    </div>
+                  </div></div>
+                </div>
+                <div class="pt-stage__mask">
+                  <div class="pt-dialog" style="max-width:440px;">
+                    <div class="pt-dialog__hd"><span>创建赠送订单</span><span class="x">×</span></div>
+                    <div class="pt-dialog__bd">
+                      <div class="pt-form-row">
+                        <label><span class="req">手机号</span></label>
+                        <div class="pt-form-ctl"><span class="pt-form-input" style="display:inline-block;width:100%;">13766660045</span></div>
+                      </div>
+                      <div class="pt-form-row">
+                        <label><span class="req">选择套餐</span></label>
+                        <div class="pt-form-ctl">
+                          <span class="pt-form-input" style="display:inline-block;width:100%;">AI旗舰包（年） · 1000万积分 / ¥499 ▾</span>
+                          <div class="pt-form-tip">选中后自动带出积分</div>
+                        </div>
+                      </div>
+                      <div class="pt-form-row">
+                        <label>赠送时长</label>
+                        <div class="pt-form-ctl">
+                          <div class="pt-seg"><span>7天</span><span>月</span><span class="on">年</span></div>
+                        </div>
+                      </div>
+                      <div class="pt-form-row">
+                        <label>赠送AI积分</label>
+                        <div class="pt-form-ctl">
+                          <span class="pt-form-input" style="display:inline-block;width:140px;">10000000</span>
+                          <span class="pt-form-tip" style="display:inline;margin-left:8px;">跟随套餐带出，可改</span>
+                        </div>
+                      </div>
+                      <div class="pt-form-row">
+                        <label>备注</label>
+                        <div class="pt-form-ctl">
+                          <span class="pt-form-input" style="display:inline-block;width:100%;">KOL合作赠送，年度合作权益</span>
+                          <div class="pt-form-tip">赠送原因，不超过 20 字（<span id="noteCount">13</span>/20）</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="pt-dialog__ft">
+                      <button class="pt-btn pt-btn--ghost">取 消</button>
+                      <button class="pt-btn pt-btn--sm">确定赠送</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <h3>字段规则</h3>
+          <table>
+            <thead><tr><th width="20%">字段</th><th width="14%">必填</th><th>校验</th></tr></thead>
+            <tbody>
+              <tr><td>手机号</td><td>是</td><td>同手工订单：11 位 1 开头 + 主账号校验</td></tr>
+              <tr><td>选择套餐</td><td>是</td><td>同手工订单；选中后自动带出积分</td></tr>
+              <tr><td>赠送时长</td><td>否</td><td>下拉：7天 / 月 / 年</td></tr>
+              <tr><td>赠送AI积分</td><td>否</td><td>跟随套餐带出，可手工修改</td></tr>
+              <tr><td>备注</td><td>否</td><td>赠送原因，不超过 20 字，超长截断并计数</td></tr>
+            </tbody>
+          </table>
+          <div class="callout">
+            <strong>创建成功：</strong>交易金额为 <strong>0.00</strong>（商品金额记套餐价、优惠金额等额抵扣），状态「已支付」，来源「赠送订单」，备注写入列表备注列，积分一次性到账。
+          </div>
+
+          <h3>测试要点</h3>
+          <ul class="checklist">
+            <li>手机号 / 套餐校验同手工订单</li>
+            <li>赠送时长三档可选；赠送AI积分 跟随套餐带出且可改</li>
+            <li>备注 20 字上限：超长无法继续输入，计数实时更新</li>
+            <li>创建成功后：交易金额 0.00、已支付、赠送订单、备注列显示所填内容、积分到账</li>
+          </ul>
+        </section>
+
+        <!-- ==================== 积分明细 ==================== -->
+        <section id="m6">
+          <h2>八、页面二 · 积分明细弹窗</h2>
+          <p>入口：AI订单列表操作列「明细」。弹窗含「充值明细 / 消耗明细」两个 Tab，<strong>默认打开消耗明细且默认选中近 90 天</strong>。</p>
+
+          <h3>原型 Demo · 充值明细 Tab</h3>
+          <div class="demo">
+            <div class="demo__bar">
+              <span class="demo__dot demo__dot--r"></span><span class="demo__dot demo__dot--y"></span><span class="demo__dot demo__dot--g"></span>
+              <span>积分明细 · 充值明细：订单编号 / 充值套餐 / 支付时间 / 绿色 +积分 · 每页 5 条</span>
+            </div>
+            <div class="demo__body" style="padding:10px;">
+              <div class="pt-stage">
+                <div class="pt-stage__back">
+                  <div class="pt-admin"><div class="pt-admin__shell">
+                    <aside class="pt-admin__side" style="width:120px;">
+                      <div class="pt-admin__logo"><span class="pt-admin__logo-badge">雷</span><span class="pt-admin__logo-text">店雷达后台</span></div>
+                    </aside>
+                    <div class="pt-admin__main">
+                      <div class="pt-admin__navbar">
+                        <span class="pt-admin__hamburger">☰</span>
+                        <span class="pt-admin__crumb">首页<span class="sep">/</span>订单管理<span class="sep">/</span><span class="cur">AI订单</span></span>
+                        <span class="pt-admin__avatar">管</span><span class="pt-admin__uname">admin</span>
+                      </div>
+                      <div class="pt-admin__tags"><span class="pt-admin__tag pt-admin__tag--active">AI订单 ×</span></div>
+                      <div class="pt-admin__content" style="min-height:260px;"></div>
+                    </div>
+                  </div></div>
+                </div>
+                <div class="pt-stage__mask" style="padding:10px;">
+                  <div class="pt-dialog pt-dialog--wide">
+                    <div class="pt-dialog__hd">
+                      <span>积分明细<span class="pt-dlg-sub">138****6621 · 旺财选品 · 当前剩余 98万积分</span></span><span class="x">×</span>
+                    </div>
+                    <div class="pt-dlg-tabs">
+                      <span class="pt-dlg-tab pt-dlg-tab--on">充值明细</span>
+                      <span class="pt-dlg-tab">消耗明细</span>
+                    </div>
+                    <div class="pt-dialog__body" style="padding:12px 14px;">
+                      <div class="pt-admin__card" style="overflow-x:auto;">
+                        <table class="pt-table">
+                          <thead><tr><th>订单编号</th><th>充值套餐</th><th>支付时间</th><th>积分变动</th></tr></thead>
+                          <tbody>
+                            <tr><td><code>dld20261008101205001</code></td><td>AI体验包（月）</td><td>2026-10-08 10:12:05</td><td class="pt-num-green">+10万积分</td></tr>
+                            <tr><td><code>dld20260901093011207</code></td><td>AI体验包（月）</td><td>2026-09-01 09:30:11</td><td class="pt-num-green">+10万积分</td></tr>
+                            <tr><td><code>dld20260715201145033</code></td><td>AI标准包（月）</td><td>2026-07-15 20:11:45</td><td class="pt-num-green">+100万积分</td></tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="pt-dialog__summary">
+                        <span>共 3 条 · 累计充值 <b class="pt-num-green">120万积分</b></span>
+                        <span class="pt-pager-num"><span>‹</span><span class="on">1</span><span>›</span> &nbsp;每页 5 条</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <h3>原型 Demo · 消耗明细 Tab（默认）</h3>
+          <div class="demo">
+            <div class="demo__bar">
+              <span class="demo__dot demo__dot--r"></span><span class="demo__dot demo__dot--y"></span><span class="demo__dot demo__dot--g"></span>
+              <span>消耗明细 · 7/30/90天胶囊（默认90天）+ 自定义日期区间 · 对话记录/创建时间/来源对话/红色 -N · 每页 5 条</span>
+            </div>
+            <div class="demo__body" style="padding:10px;">
+              <div class="pt-stage">
+                <div class="pt-stage__back">
+                  <div class="pt-admin"><div class="pt-admin__shell">
+                    <aside class="pt-admin__side" style="width:120px;">
+                      <div class="pt-admin__logo"><span class="pt-admin__logo-badge">雷</span><span class="pt-admin__logo-text">店雷达后台</span></div>
+                    </aside>
+                    <div class="pt-admin__main">
+                      <div class="pt-admin__navbar">
+                        <span class="pt-admin__hamburger">☰</span>
+                        <span class="pt-admin__crumb">首页<span class="sep">/</span>订单管理<span class="sep">/</span><span class="cur">AI订单</span></span>
+                        <span class="pt-admin__avatar">管</span><span class="pt-admin__uname">admin</span>
+                      </div>
+                      <div class="pt-admin__tags"><span class="pt-admin__tag pt-admin__tag--active">AI订单 ×</span></div>
+                      <div class="pt-admin__content" style="min-height:260px;"></div>
+                    </div>
+                  </div></div>
+                </div>
+                <div class="pt-stage__mask" style="padding:10px;">
+                  <div class="pt-dialog pt-dialog--wide">
+                    <div class="pt-dialog__hd">
+                      <span>积分明细<span class="pt-dlg-sub">138****6621 · 旺财选品 · 当前剩余 98万积分</span></span><span class="x">×</span>
+                    </div>
+                    <div class="pt-dlg-tabs">
+                      <span class="pt-dlg-tab">充值明细</span>
+                      <span class="pt-dlg-tab pt-dlg-tab--on">消耗明细</span>
+                    </div>
+                    <div class="pt-dialog__body" style="padding:12px 14px;">
+                      <div class="pt-pills">
+                        <span class="pt-pill">今天</span>
+                        <span class="pt-pill">7天</span>
+                        <span class="pt-pill">30天</span>
+                        <span class="pt-pill pt-pill--on">90天</span>
+                        <span class="pt-date-range">📅 自定义：2026-07-12 ~ 2026-10-10 ▾</span>
+                      </div>
+                      <div class="pt-admin__card" style="overflow-x:auto;">
+                        <table class="pt-table">
+                          <thead><tr><th>对话记录</th><th>创建时间</th><th>来源对话</th><th>积分消耗</th></tr></thead>
+                          <tbody>
+                            <tr>
+                              <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;">帮我找近30天连衣裙爆款，价格30元以内，按销量排序</td>
+                              <td class="pt-time2">2026-10-08<small>10:20:36</small></td>
+                              <td><span class="pt-conv-badge">连衣裙爆款选品</span></td>
+                              <td class="pt-num-red">-18</td>
+                            </tr>
+                            <tr>
+                              <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;">生成这批发卡的选品分析报告</td>
+                              <td class="pt-time2">2026-10-08<small>10:24:02</small></td>
+                              <td><span class="pt-conv-badge">连衣裙爆款选品</span></td>
+                              <td class="pt-num-red">-36</td>
+                            </tr>
+                            <tr>
+                              <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;">3C数据线类目下有哪些高复购供应商</td>
+                              <td class="pt-time2">2026-10-07<small>15:02:51</small></td>
+                              <td><span class="pt-conv-badge">3C供应商对比</span></td>
+                              <td class="pt-num-red">-18</td>
+                            </tr>
+                            <tr>
+                              <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;">防晒衣这个类目还能做吗，帮我看下趋势</td>
+                              <td class="pt-time2">2026-10-05<small>09:41:18</small></td>
+                              <td><span class="pt-conv-badge">防晒衣类目趋势</span></td>
+                              <td class="pt-num-red">-18</td>
+                            </tr>
+                            <tr>
+                              <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;">把上次的结果按30天销售额重新排一下</td>
+                              <td class="pt-time2">2026-10-05<small>09:45:40</small></td>
+                              <td><span class="pt-conv-badge">防晒衣类目趋势</span></td>
+                              <td class="pt-num-red">-12</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div class="pt-dialog__summary">
+                        <span>共 12 条 · 累计消耗 <b class="pt-num-red">216 积分</b></span>
+                        <span class="pt-pager-num"><span>‹</span><span class="on">1</span><span>2</span><span>3</span><span>›</span> &nbsp;每页 5 条</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <h3>业务逻辑</h3>
+          <h4>弹窗结构</h4>
+          <ul>
+            <li>头部：标题「积分明细」+ 副标题（手机号 / 昵称 / 当前剩余积分）+ 关闭按钮。</li>
+            <li>Tab 切换：充值明细 / 消耗明细，切换后标题不变、表格与汇总同步切换；<strong>默认进入消耗明细 Tab</strong>。</li>
+          </ul>
+          <h4>充值明细 Tab</h4>
+          <table>
+            <thead><tr><th width="22%">列</th><th>说明</th></tr></thead>
+            <tbody>
+              <tr><td>订单编号</td><td>充值来源订单（线上 / 手工 / 赠送均计入）</td></tr>
+              <tr><td>充值套餐</td><td>套餐名称</td></tr>
+              <tr><td>支付时间</td><td>支付完成时间</td></tr>
+              <tr><td>积分变动</td><td>绿色 <strong>+积分</strong>，按万格式展示（如 +10万积分）</td></tr>
+            </tbody>
+          </table>
+          <p>底部汇总「共 N 条 · 累计充值 X」，每页 5 条分页。</p>
+          <h4>消耗明细 Tab</h4>
+          <table>
+            <thead><tr><th width="22%">列</th><th>说明</th></tr></thead>
+            <tbody>
+              <tr><td>对话记录</td><td>用户发起的 AI 任务原文，超长单行截断，悬停显示全文</td></tr>
+              <tr><td>创建时间</td><td>日期 + 时间两行展示</td></tr>
+              <tr><td>来源对话</td><td>任务所属对话，胶囊标签展示</td></tr>
+              <tr><td>积分消耗</td><td>红色 <strong>-N</strong>，按实际扣减积分展示</td></tr>
+            </tbody>
+          </table>
+          <ul>
+            <li><strong>时间筛选：</strong>今天 / 7天 / 30天 / 90天 胶囊（默认 <strong>90天</strong>，选中项深色）+ 自定义日期区间按钮。</li>
+            <li><strong>自定义区间：</strong>点击弹出自定义起止日期，开始日期不得晚于结束日期，否则拦截提示；确定后按区间过滤，胶囊取消选中。</li>
+            <li>底部汇总「共 N 条 · 累计消耗 X 积分」，每页 5 条分页（如 9 条 → 第 1 页 5 条、第 2 页 4 条）。</li>
+          </ul>
+          <div class="callout callout--warn">
+            <strong>明细数据口径：</strong>明细按用户聚合（手机号维度），与其订单条数无关；剩余积分 = 累计充值 − 累计消耗，与列表「剩余积分」一致。
+          </div>
+
+          <h3>测试要点</h3>
+          <ul class="checklist">
+            <li>点「明细」打开弹窗，默认选中消耗明细 Tab、时间胶囊默认 90天</li>
+            <li>充值明细：绿色 +积分、万格式正确；汇总累计充值=各条之和；每页 5 条分页正确</li>
+            <li>消耗明细：对话记录截断 + 悬停全文；创建时间日期 / 时间两行；来源对话胶囊；红色 -N</li>
+            <li>今天 / 7天 / 30天 / 90天 切换过滤正确，选中项深色；自定义区间确定后按区间过滤且胶囊取消选中</li>
+            <li>自定义开始日期晚于结束日期被拦截</li>
+            <li>9 条数据时分页为第 1 页 5 条、第 2 页 4 条；汇总累计消耗=各条之和</li>
+            <li>切换 Tab 后副标题（用户 / 剩余积分）保持不变</li>
+          </ul>
+        </section>
+
+        <!-- ==================== 格式化 ==================== -->
+        <section id="m7">
+          <h2>九、积分格式化规则（前后端一致）</h2>
+          <table>
+            <thead><tr><th width="30%">场景</th><th width="24%">展示</th><th>示例</th></tr></thead>
+            <tbody>
+              <tr><td>数值为 10000 的整数倍</td><td>x万积分</td><td><code>10000</code> → 1万积分；<code>1000000</code> → 100万积分；<code>10000000</code> → 1000万积分</td></tr>
+              <tr><td>其他数值</td><td>n积分（原样显示）</td><td><code>98000</code> → 98000积分；<code>99680</code> → 99680积分</td></tr>
+              <tr><td>空值 / 非数字</td><td>--</td><td><code>null</code> / <code>''</code> → --</td></tr>
+            </tbody>
+          </table>
+          <div class="callout">
+            <strong>存储与传输：</strong>列表、弹窗、接口一律存储 / 传输<strong>原始整数</strong>（单位：积分），字段名 <code>aiPoints</code> / <code>leftPoints</code> / <code>todayUsed</code>；格式化仅发生在展示层，禁止在前端预格式化后回传。
+          </div>
+          <h3>演示套餐数据</h3>
+          <table>
+            <thead><tr><th>套餐</th><th>AI积分（原始值）</th><th>展示</th><th>套餐价</th><th>时长</th></tr></thead>
+            <tbody>
+              <tr><td>AI体验包（月）</td><td>100000</td><td class="pt-num-green">10万积分</td><td>¥9.9</td><td>月</td></tr>
+              <tr><td>AI标准包（月）</td><td>1000000</td><td class="pt-num-green">100万积分</td><td>¥99</td><td>月</td></tr>
+              <tr><td>AI旗舰包（年）</td><td>10000000</td><td class="pt-num-green">1000万积分</td><td>¥499</td><td>年</td></tr>
+            </tbody>
+          </table>
+
+          <h3>测试要点</h3>
+          <ul class="checklist">
+            <li>10000 整数倍显示 x万积分；非整数倍显示原始数字 + 积分；空值显示 --</li>
+            <li>列表、弹窗、用户侧预览三处格式一致</li>
+            <li>编辑回填与接口提交均为原始整数，不出现「100万」字样</li>
+          </ul>
+        </section>
+
+        <!-- ==================== 接口 ==================== -->
+        <section id="m8">
+          <h2>十、接口需求（供后端）</h2>
+          <table>
+            <thead><tr><th width="22%">接口</th><th width="26%">说明</th><th>关键字段</th></tr></thead>
+            <tbody>
+              <tr><td>套餐创建 / 编辑</td><td>套餐保存</td><td><code>aiPoints</code>（整数，单位积分；非 AI 类套餐传空）</td></tr>
+              <tr><td>套餐列表</td><td>含 AI积分 字段返回</td><td><code>aiPoints</code>、优先级、状态、创建时间</td></tr>
+              <tr><td>AI订单列表</td><td>分页 + 筛选（状态 / 续费 / 类型 / 来源 / 手机号 / 创建时间区间）</td><td>订单 19 字段 + <code>aiPoints</code>、<code>leftPoints</code>、<code>todayUsed</code>、<code>note</code></td></tr>
+              <tr><td>创建手工订单</td><td>运营创建 AI 订单</td><td>手机号、套餐ID、积分、实付金额</td></tr>
+              <tr><td>创建赠送订单</td><td>运营赠送 AI 订单</td><td>手机号、套餐ID、时长、积分、备注（≤20字）</td></tr>
+              <tr><td>导出订单</td><td>按当前筛选导出</td><td>同列表字段</td></tr>
+              <tr><td>积分充值明细</td><td>按用户聚合其充值记录</td><td>订单编号、套餐、支付时间、积分变动</td></tr>
+              <tr><td>积分消耗明细</td><td>按用户 + 时间区间查询消耗流水</td><td>对话记录、创建时间、来源对话、消耗积分</td></tr>
+            </tbody>
+          </table>
+          <h4>后端校验要求</h4>
+          <ul>
+            <li>手机号主账号校验（复用现有客户体系）；</li>
+            <li>AI 类订单积分必填且为正整数；</li>
+            <li>赠送订单备注长度 ≤ 20 字；</li>
+            <li>导出权限复用现有订单导出权限；</li>
+            <li>订单号 <code>dld + yyyyMMddHHmmss + 3位随机</code>，服务端查重。</li>
+          </ul>
+        </section>
+
+        <!-- ==================== 测试要点汇总 ==================== -->
+        <section id="m9">
+          <h2>十一、测试要点汇总（供 QA）</h2>
+          <h3>套餐管理</h3>
+          <ul class="checklist">
+            <li>创建 AI 套餐不填 AI积分 → 拦截并提示「请输入AI积分」；非 AI 类套餐无此项，可正常提交</li>
+            <li>AI积分 输入 0、负数、非数字被拦截（正整数约定）</li>
+            <li>列表 AI积分 列：AI 套餐显示格式化积分，非 AI 套餐显示「--」；表头带「新增」徽标</li>
+            <li>编辑回填：修改与编辑打开同一弹窗，AI积分 正确回填（原始整数）</li>
+            <li>创建时间排序升降序切换正常</li>
+          </ul>
+          <h3>AI订单</h3>
+          <ul class="checklist">
+            <li>菜单入口位于「MCP订单」下方，选中态高亮；面包屑与标签栏正确</li>
+            <li>筛选组合：状态 + 来源 + 手机号模糊，结果与条件一致；清空后恢复全量</li>
+            <li>创建手工订单：手机号非 11 位 / 非 1 开头拦截；未选套餐拦截；选套餐后积分与价格自动带出且可改</li>
+            <li>创建赠送订单：交易金额为 0；备注 20 字上限；保存后列表备注列显示所填内容</li>
+            <li>积分明细：默认打开消耗明细 90 天；切换充值 / 消耗 Tab 标题与汇总同步变化；7/30/90 天切换过滤正确；自定义日期开始晚于结束被拦截；每页 5 条翻页正确（9 条 → 5 + 4）</li>
+            <li>19 列横向滚动流畅，各列无异常换行 / 挤压；状态圆点颜色正确</li>
+            <li>「使用」按钮本期为占位，点击无跳转、无报错</li>
+          </ul>
+          <h3>兼容性</h3>
+          <ul class="checklist">
+            <li>Chrome / Edge 最新版；管理后台最小可用宽度 1200px；表格区域允许横向滚动</li>
+            <li>弹窗在 1200px 宽度下完整可见，遮罩层背景页面不可操作</li>
+          </ul>
+        </section>
+
+        <!-- ==================== 待确认 ==================== -->
+        <section id="edge">
+          <h2>十二、待确认事项与已知边界</h2>
+          <ul>
+            <li>「使用」按钮的交互（打开使用记录还是跳转工具页）下一版本确认，本期仅占位。</li>
+            <li>导出格式（Excel/CSV）与是否需要异步导出，按现有 MCP订单 导出能力对齐。</li>
+            <li>手机号主账号校验依赖现有客户体系接口，联调时确认错误文案。</li>
+            <li>订单类型筛选项本期固定 AI订单，后续若出现更多类型再放开。</li>
+          </ul>
+          <div class="callout callout--danger">
+            <strong>演示数据说明：</strong>原型数据全部存于浏览器本地（localStorage 键 <code>dld_ai_setmeal_v1</code>、<code>dld_ai_order_v2</code>），刷新保留、清缓存丢失；正式环境以接口数据为准，不得将本地数据视为已联调。
+          </div>
+        </section>
+      </main>
+
+      <footer>
+        店雷达后台 V3.0.6「AI积分」原型说明 · 面向前端 / 后端 / 测试 · 在线原型：dev-mode.html（业务管理 → 后台-创建AI套餐；订单管理 → 后台-AI订单）
+      </footer>
+    </div>
+  </article>
+</body>
+</html>
