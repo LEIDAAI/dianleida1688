@@ -27,7 +27,7 @@
 
 | 页面 | 链接 | 说明 |
 |---|---|---|
-| 跨境电商选品-前台 | http://192.168.1.35:5173/ | 跨境电商选品前台应用（本地开发环境） |
+| 跨境电商选品-前台 | https://leidaai.github.io/leidaaiqiantai/ | 跨境电商选品前台应用（GitHub Pages 部署） |
 | 跨境电商选品-后台 | https://leidaai.github.io/leidaaisystem/#/login?redirect=/experts | 跨境电商选品后台管理系统（GitHub Pages 部署） |
 
 ### 变更记录
@@ -35,6 +35,8 @@
 - **2026-11-03**：新增 V3.0.8「跨境电商选品Agent」版本，左侧导航新增两个外链入口。
 - **2026-11-03**：V3.0.8 标记为「最新」版本，默认展开；原 V3.0.6 去掉「最新」徽标，默认收起。
 - **2026-11-03**：iframe 默认 src 更新为跨境电商选品-前台入口。
+- **2026-11-05**：前台地址由内网 `http://192.168.1.35:5173/` 切换为公网 `https://leidaai.github.io/leidaaiqiantai/`（导航入口与 iframe 默认 src 同步更新）。
+- **2026-11-05**：V3.0.6「1688 Angent」外链更新为 `https://leidaai.github.io/dld-angent/`（原 kingf668877-creator 域名已失效）。
 
 ---
 
@@ -205,7 +207,7 @@
 版本规划（默认展开）
 ├── 版本规划
 V3.0.8（最新，默认展开）
-├── 跨境电商选品-前台 → http://192.168.1.35:5173/
+├── 跨境电商选品-前台 → https://leidaai.github.io/leidaaiqiantai/
 ├── 跨境电商选品-后台 → https://leidaai.github.io/leidaaisystem/
 V3.0.6（收起）
 ├── 1688 Angent（外链）
