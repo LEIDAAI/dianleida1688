@@ -11,7 +11,8 @@ const mockTasks = [
     progress: 100,
     finished: 328,
     createTime: '2026-08-04 10:32:15',
-    finishTime: '2026-08-04 11:15:42'
+    finishTime: '2026-08-04 11:15:42',
+    avgPrice: 45.50
   },
   {
     id: 2,
@@ -24,7 +25,8 @@ const mockTasks = [
     progress: 68,
     finished: 106,
     createTime: '2026-08-04 09:20:08',
-    finishTime: '-'
+    finishTime: '-',
+    avgPrice: 12.80
   },
   {
     id: 3,
@@ -37,7 +39,8 @@ const mockTasks = [
     progress: 0,
     finished: 0,
     createTime: '2026-08-04 08:45:30',
-    finishTime: '-'
+    finishTime: '-',
+    avgPrice: 8.90
   },
   {
     id: 5,
@@ -50,7 +53,8 @@ const mockTasks = [
     progress: 80,
     finished: 160,
     createTime: '2026-08-02 14:10:00',
-    finishTime: '2026-08-02 16:30:20'
+    finishTime: '2026-08-02 16:30:20',
+    avgPrice: 35.60
   },
   {
     id: 6,
@@ -63,7 +67,8 @@ const mockTasks = [
     progress: 0,
     finished: 0,
     createTime: '2026-08-04 11:30:00',
-    finishTime: '-'
+    finishTime: '-',
+    avgPrice: 128.00
   }
 ];
 
@@ -1104,11 +1109,19 @@ document.getElementById('searchBtn')?.addEventListener('click', () => {
   const name = document.getElementById('filterTaskName').value.trim().toLowerCase();
   const type = document.getElementById('filterType').value;
   const status = document.getElementById('filterStatus').value;
+  const qtyMin = parseFloat(document.getElementById('filterQtyMin').value);
+  const qtyMax = parseFloat(document.getElementById('filterQtyMax').value);
+  const priceMin = parseFloat(document.getElementById('filterPriceMin').value);
+  const priceMax = parseFloat(document.getElementById('filterPriceMax').value);
 
   let filtered = [...mockTasks];
   if (name) filtered = filtered.filter(t => t.name.toLowerCase().includes(name));
   if (type) filtered = filtered.filter(t => t.type === type);
   if (status) filtered = filtered.filter(t => t.status === status);
+  if (!isNaN(qtyMin)) filtered = filtered.filter(t => t.count >= qtyMin);
+  if (!isNaN(qtyMax)) filtered = filtered.filter(t => t.count <= qtyMax);
+  if (!isNaN(priceMin)) filtered = filtered.filter(t => t.avgPrice >= priceMin);
+  if (!isNaN(priceMax)) filtered = filtered.filter(t => t.avgPrice <= priceMax);
 
   tasks = filtered;
   renderTaskTable();
@@ -1121,6 +1134,10 @@ document.getElementById('resetFilterBtn')?.addEventListener('click', () => {
   document.getElementById('filterStatus').value = '';
   document.getElementById('filterDateStart').value = '';
   document.getElementById('filterDateEnd').value = '';
+  document.getElementById('filterQtyMin').value = '';
+  document.getElementById('filterQtyMax').value = '';
+  document.getElementById('filterPriceMin').value = '';
+  document.getElementById('filterPriceMax').value = '';
   tasks = [...mockTasks];
   renderTaskTable();
   showToast('已重置筛选');

@@ -1343,7 +1343,8 @@ button {
   min-width: 200px;
 }
 
-.filter-item.filter-date {
+.filter-item.filter-date,
+.filter-item.filter-range {
   flex: 2;
   min-width: 360px;
 }
