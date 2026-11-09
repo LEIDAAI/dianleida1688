@@ -86,7 +86,7 @@
   let currentPage = 'create';
   let iframeSrc = `ai-three-step.html?v=${PREVIEW_VERSION}`;
   if (pageParam === 'list') { currentPage = 'list'; iframeSrc = `ai-three-step.html?page=list&v=${PREVIEW_VERSION}`; }
-  else if (pageParam === 'result') { currentPage = 'result'; iframeSrc = `source-result.html?v=20261109-result5`; }
+  else if (pageParam === 'result') { currentPage = 'result'; iframeSrc = `source-result.html?v=20261109-result6`; }
   else if (pageParam === 'package') { currentPage = 'package'; iframeSrc = `ai-three-step.html?page=package&v=${PREVIEW_VERSION}`; }
   previewFrame.src = iframeSrc;
 
@@ -244,9 +244,9 @@
   function reloadAllCode() {
     const fileBase = currentPage === 'result' ? 'source-result' : 'ai-three-step';
     const extract = currentPage === 'result' ? text => text : null;
-    loadCode('html', `${fileBase}.html?v=20261109-result5`, 'codeHtml', extract || extractHtmlSection);
-    loadCode('css', `${fileBase}.css?v=20261109-result5`, 'codeCss', extract || extractCssSection);
-    loadCode('js', `${fileBase}.js?v=20261109-result5`, 'codeJs', extract || extractJsSection);
+    loadCode('html', `${fileBase}.html?v=20261109-result6`, 'codeHtml', extract || extractHtmlSection);
+    loadCode('css', `${fileBase}.css?v=20261109-result6`, 'codeCss', extract || extractCssSection);
+    loadCode('js', `${fileBase}.js?v=20261109-result6`, 'codeJs', extract || extractJsSection);
   }
   reloadAllCode();
   document.querySelectorAll('.copy-btn').forEach(btn => btn.addEventListener('click', async () => {
