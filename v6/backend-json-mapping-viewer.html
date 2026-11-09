@@ -829,8 +829,14 @@ window.addEventListener('beforeunload', (e) => {
 //  初始化
 // ============================================================
 function init() {
+  // 支持 ?doc= 指定要打开的 Markdown 文件，默认 backend-json-mapping.md
+  const params = new URLSearchParams(window.location.search);
+  const requested = (params.get('doc') || 'backend-json-mapping.md').trim();
+  const docFile = /^[A-Za-z0-9._-]+\.md$/.test(requested) ? requested : 'backend-json-mapping.md';
+  document.getElementById('docFile').textContent = docFile;
+
   // 优先从 MD 文件加载（带时间戳防浏览器缓存）
-  fetch('backend-json-mapping.md?t=' + Date.now())
+  fetch(docFile + '?t=' + Date.now())
     .then(response => {
       if (!response.ok) throw new Error('读取失败');
       return response.text();

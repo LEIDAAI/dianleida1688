@@ -1,0 +1,234 @@
+{
+  "version": "1.3",
+  "updatedAt": "2026-11-09",
+  "note": "图搜批量寻源 —— 导入表格时商品链接/店铺链接/图片链接识别规则。status: verified=已用真实数据实测通过，reference=资料来源，联调需校验。",
+  "priority": ["image", "product", "store"],
+  "sampleSize": 5,
+  "matchSemantics": {
+    "host": "host 模式匹配 URL 解析出的 hostname。* 匹配任意字符（含点），用于 *.amazon.* 这类多级域名",
+    "paths": "正则列表，匹配 URL 的 path 部分。空数组表示该维度不参与判定",
+    "queries": "正则列表，匹配 URL 的 query string（不含 ?）。空数组表示该维度不参与判定",
+    "combine": "同一平台内，paths 与 queries 之间是「或」关系：任一参与判定的维度命中即算命中；两个维度都为空时，仅凭 host 命中即算命中",
+    "order": "先判 image，再判 product，最后判 store；平台之间按本文件顺序遍历，先命中先返回"
+  },
+  "sharedImageCdnHosts": ["*.alicdn.com", "*.aliyuncs.com", "*.tbcdn.cn"],
+  "genericImageExtensions": [".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".avif", ".tiff"],
+  "columnNameHints": {
+    "product": ["商品链接", "商品URL", "商品地址", "产品链接", "产品URL", "item url", "product url", "product link", "goods url", "detail url", "listing url"],
+    "store": ["店铺链接", "店铺URL", "卖家链接", "卖家URL", "shop url", "store url", "seller url"],
+    "image": ["主图", "主图地址", "主图链接", "商品主图", "图片链接", "图片地址", "图片URL", "主图URL", "image url", "main image", "primary image", "image", "photo", "图片"]
+  },
+  "platforms": [
+    {
+      "platform": "1688",
+      "status": "verified",
+      "imageCdnHosts": [],
+      "imageHostsWithPath": [
+        { "hosts": ["*.1688.com"], "paths": ["/img/ibank/", "/img/"] }
+      ],
+      "product": {
+        "hosts": ["detail.1688.com", "*.1688.com"],
+        "paths": ["^/offer/\\d+(\\.html)?$", "^/offer/\\d+/"],
+        "queries": []
+      },
+      "store": {
+        "hosts": ["*.1688.com"],
+        "paths": [],
+        "queries": []
+      },
+      "samples": {
+        "product": "https://detail.1688.com/offer/925158972925.html",
+        "store": "https://shop3d4x758012335.1688.com",
+        "image": "https://cbu01.alicdn.com/img/ibank/O1CN01OMCJJK1KANvODyLiG_!!2219632621123-0-cib.jpg"
+      }
+    },
+    {
+      "platform": "ozon",
+      "status": "verified",
+      "imageCdnHosts": ["*.ozonstatic.cn"],
+      "imageHostsWithPath": [
+        { "hosts": ["obs.dianleida.net"], "paths": ["/dld/ozon/image/"] }
+      ],
+      "product": {
+        "hosts": ["*.ozon.ru", "ozon.ru"],
+        "paths": ["^/product/\\d+/?$", "^/product/\\d+/"],
+        "queries": []
+      },
+      "store": {
+        "hosts": ["ozon.ru", "*.ozon.ru"],
+        "paths": ["^/seller/"],
+        "queries": []
+      },
+      "samples": {
+        "product": "https://www.ozon.ru/product/146215073",
+        "store": "https://www.ozon.ru/seller/123456",
+        "image": "https://ir-20.ozonstatic.cn/s3/multimedia-2/6621307346.jpg"
+      }
+    },
+    {
+      "platform": "temu",
+      "status": "verified",
+      "imageCdnHosts": ["*.kwcdn.com"],
+      "imageHostsWithPath": [
+        { "hosts": ["*.temu.com"], "paths": ["/product/"] }
+      ],
+      "product": {
+        "hosts": ["*.temu.com", "temu.com"],
+        "paths": ["^/goods\\.html$", "^/.*-p-\\d+\\.html$"],
+        "queries": ["goods_id=\\d+"]
+      },
+      "store": {
+        "hosts": ["*.temu.com", "temu.com"],
+        "paths": ["^/mall_id/"],
+        "queries": []
+      },
+      "samples": {
+        "product": "https://www.temu.com/goods.html?goods_id=601100697932959",
+        "store": "https://www.temu.com/mall_id/634418216933667.html",
+        "image": "https://img-2.kwcdn.com/product/algo_check/auto/526fd07ede73f7b82af53f527f390ba61780834515754.jpg"
+      }
+    },
+    {
+      "platform": "amazon",
+      "status": "verified",
+      "imageCdnHosts": ["*.media-amazon.com", "*.images-amazon.com", "*.ssl-images-amazon.com"],
+      "imageHostsWithPath": [
+        { "hosts": ["*.amazon.*"], "paths": ["/images/I/"] }
+      ],
+      "product": {
+        "hosts": ["*.amazon.*"],
+        "paths": ["^/dp/[A-Z0-9]{9,10}", "^/gp/product/[A-Z0-9]{9,10}", "^/gp/aw/d/[A-Z0-9]{9,10}"],
+        "queries": []
+      },
+      "store": {
+        "hosts": ["*.amazon.*"],
+        "paths": ["^/shops/", "^/stores/", "^/shop/", "^/s$"],
+        "queries": ["^me=", "^seller="]
+      },
+      "samples": {
+        "product": "https://www.amazon.com/dp/B000IB9QXI",
+        "store": "https://www.amazon.com/shops/SomeStore",
+        "image": "https://m.media-amazon.com/images/I/41abcdefgh.jpg"
+      }
+    },
+    {
+      "platform": "aliexpress",
+      "status": "reference",
+      "imageCdnHosts": [],
+      "imageHostsWithPath": [],
+      "product": {
+        "hosts": ["*.aliexpress.com"],
+        "paths": ["^/item/\\d+(_\\d+)?\\.html$"],
+        "queries": []
+      },
+      "store": {
+        "hosts": ["store.aliexpress.com", "*.store.aliexpress.com"],
+        "paths": [],
+        "queries": []
+      },
+      "samples": {
+        "product": "https://www.aliexpress.com/item/1005006123456789.html",
+        "store": "https://store.aliexpress.com/123456.html"
+      }
+    },
+    {
+      "platform": "taobao",
+      "status": "reference",
+      "imageCdnHosts": [],
+      "imageHostsWithPath": [],
+      "product": {
+        "hosts": ["item.taobao.com", "detail.tmall.com", "*.taobao.com", "*.tmall.com"],
+        "paths": ["^/item\\.htm$", "^/i\\d+\\.htm$"],
+        "queries": ["(^|&)id=\\d+"]
+      },
+      "store": {
+        "hosts": ["shop*.taobao.com", "shop*.tmall.com"],
+        "paths": [],
+        "queries": []
+      },
+      "samples": {
+        "product": "https://item.taobao.com/item.htm?id=654321987",
+        "store": "https://shop123456.taobao.com"
+      }
+    },
+    {
+      "platform": "alibaba",
+      "status": "reference",
+      "imageCdnHosts": [],
+      "imageHostsWithPath": [],
+      "product": {
+        "hosts": ["*.alibaba.com"],
+        "paths": ["^/product-detail/"],
+        "queries": []
+      },
+      "store": {
+        "hosts": ["*.alibaba.com"],
+        "paths": ["^/company_profile", "^/store"],
+        "queries": []
+      },
+      "samples": {
+        "product": "https://www.alibaba.com/product-detail/Portable-Juicer-1234567890.html"
+      }
+    },
+    {
+      "platform": "tiktok",
+      "status": "reference",
+      "imageCdnHosts": ["*.tiktokcdn.com", "*.tiktokcdn-us.com", "*.tiktokcdn-eu.com", "*.byteimg.com"],
+      "imageHostsWithPath": [],
+      "product": {
+        "hosts": ["*.tiktok.com"],
+        "paths": ["^/view/product/", "/pdp/\\d+", "^/view/item/"],
+        "queries": ["product_id=\\d+"]
+      },
+      "store": {
+        "hosts": ["*.tiktok.com"],
+        "paths": ["/seller/"],
+        "queries": []
+      },
+      "samples": {
+        "product": "https://www.tiktok.com/view/product/1734567890",
+        "store": "https://shop.tiktok.com/us/seller/123456"
+      }
+    },
+    {
+      "platform": "shein",
+      "status": "reference",
+      "imageCdnHosts": ["img.ltwebstatic.com", "*.sheincdn.com"],
+      "imageHostsWithPath": [
+        { "hosts": ["*.shein.com"], "paths": ["/product/"] }
+      ],
+      "product": {
+        "hosts": ["*.shein.com"],
+        "paths": ["-p-\\d+(-cat-\\d+)?\\.html$", "^/pdp-p-\\d+"],
+        "queries": []
+      },
+      "store": {
+        "hosts": ["*.shein.com"],
+        "paths": ["^/[^/]*store", "^/shop"],
+        "queries": []
+      },
+      "samples": {
+        "product": "https://us.shein.com/Womens-Dress-p-20995261-cat-1234.html"
+      }
+    },
+    {
+      "platform": "shopee",
+      "status": "reference",
+      "imageCdnHosts": ["*.susercontent.com"],
+      "imageHostsWithPath": [],
+      "product": {
+        "hosts": ["shopee.*", "*.shopee.*"],
+        "paths": ["-i\\.\\d+\\.\\d+"],
+        "queries": []
+      },
+      "store": {
+        "hosts": ["shopee.*", "*.shopee.*"],
+        "paths": [],
+        "queries": []
+      },
+      "samples": {
+        "product": "https://shopee.com.my/Bluetooth-Headphones-i.123456.789012"
+      }
+    }
+  ]
+}
