@@ -86,7 +86,7 @@
   let currentPage = 'create';
   let iframeSrc = `ai-three-step.html?v=${PREVIEW_VERSION}`;
   if (pageParam === 'list') { currentPage = 'list'; iframeSrc = `ai-three-step.html?page=list&v=${PREVIEW_VERSION}`; }
-  else if (pageParam === 'result') { currentPage = 'result'; iframeSrc = `ai-three-step.html?page=result&v=${PREVIEW_VERSION}`; }
+  else if (pageParam === 'result') { currentPage = 'result'; iframeSrc = `source-result.html?v=20261109-result1`; }
   else if (pageParam === 'package') { currentPage = 'package'; iframeSrc = `ai-three-step.html?page=package&v=${PREVIEW_VERSION}`; }
   previewFrame.src = iframeSrc;
 
@@ -179,9 +179,10 @@
 
   function updateCodeHeaders(page) {
     const label = sectionLabels[page] || '';
-    document.getElementById('htmlFileName').innerHTML = `ai-three-step.html <span class="section-tag">${label}</span>`;
-    document.getElementById('cssFileName').innerHTML = `ai-three-step.css <span class="section-tag">${label}</span>`;
-    document.getElementById('jsFileName').innerHTML = `ai-three-step.js <span class="section-tag">${label}</span>`;
+    const fileBase = page === 'result' ? 'source-result' : 'ai-three-step';
+    document.getElementById('htmlFileName').innerHTML = `${fileBase}.html <span class="section-tag">${label}</span>`;
+    document.getElementById('cssFileName').innerHTML = `${fileBase}.css <span class="section-tag">${label}</span>`;
+    document.getElementById('jsFileName').innerHTML = `${fileBase}.js <span class="section-tag">${label}</span>`;
     const url = getYuqueUrl(page);
     const yuqueLink = document.getElementById('yuqueTabLink');
     if (yuqueLink) yuqueLink.href = url;
@@ -241,9 +242,11 @@
       .catch(() => { document.getElementById(targetId).textContent = '加载失败：' + url; });
   }
   function reloadAllCode() {
-    loadCode('html', 'ai-three-step.html', 'codeHtml', extractHtmlSection);
-    loadCode('css', 'ai-three-step.css', 'codeCss', extractCssSection);
-    loadCode('js', 'ai-three-step.js', 'codeJs', extractJsSection);
+    const fileBase = currentPage === 'result' ? 'source-result' : 'ai-three-step';
+    const extract = currentPage === 'result' ? text => text : null;
+    loadCode('html', `${fileBase}.html?v=20261109-result1`, 'codeHtml', extract || extractHtmlSection);
+    loadCode('css', `${fileBase}.css?v=20261109-result1`, 'codeCss', extract || extractCssSection);
+    loadCode('js', `${fileBase}.js?v=20261109-result1`, 'codeJs', extract || extractJsSection);
   }
   reloadAllCode();
   document.querySelectorAll('.copy-btn').forEach(btn => btn.addEventListener('click', async () => {
