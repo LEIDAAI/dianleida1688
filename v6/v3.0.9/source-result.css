@@ -1,9 +1,18 @@
 /* Unified result filter card. */
 .source-result-page .result-filter-card{background:#fff;border:1px solid #edf0f4;border-radius:10px;box-shadow:0 3px 12px rgba(36,43,61,.04);padding:20px;margin:0 0 14px}
-.source-result-page .result-filter-card .result-filter-panel{background:transparent;border:0;border-radius:0;box-shadow:none;grid-template-columns:1fr 1fr 1.3fr;gap:20px 28px;margin:0;padding:0}
+.source-result-page .result-filter-card .result-filter-panel{background:transparent;border:0;border-radius:0;box-shadow:none;grid-template-columns:1fr 1fr 1.2fr;gap:20px 32px;margin:0;padding:0}
 .source-result-page .result-filter-card .result-filter-group{border:0;padding:0;gap:8px 12px;align-content:start}
-.source-result-page .result-filter-card .result-range-panel{display:grid;grid-template-columns:1fr 1fr 1.3fr;background:transparent;border:0;border-top:1px solid #f0f2f5;border-radius:0;box-shadow:none;gap:20px 28px;padding:18px 0 0;margin:18px 0 0}
+.source-result-page .result-filter-card .result-range-panel{display:grid;grid-template-columns:1fr 1fr 1.2fr;background:transparent;border:0;border-top:1px solid #f0f2f5;border-radius:0;box-shadow:none;gap:20px 32px;padding:18px 0 0;margin:18px 0 0}
 .source-result-page .result-filter-card .result-range-inputs input{width:clamp(64px,6vw,112px)}
+.source-result-page .result-filter-card .result-range-hint{color:#9aa3b2;font-size:12px;line-height:1.5;margin:12px 0 0}
+.source-result-page .result-filter-summary{align-items:center;display:flex;flex-wrap:wrap;gap:8px 10px;margin:14px 0 0}
+.source-result-page .summary-label{color:#9aa3b2;font-size:12px}
+.source-result-page .summary-chips{display:flex;flex-wrap:wrap;gap:8px}
+.source-result-page .summary-chip{align-items:center;background:#fff5ed;border:1px solid #ffd9bd;border-radius:999px;color:#e55d00;display:inline-flex;font-size:12px;gap:6px;line-height:22px;padding:0 6px 0 10px}
+.source-result-page .summary-chip button{background:none;border:0;color:#e55d00;cursor:pointer;font-size:14px;line-height:1;padding:0 2px}
+.source-result-page .summary-chip button:hover{color:#b34700}
+.source-result-page .summary-clear{background:none;border:0;color:#5a5a7a;cursor:pointer;font-size:12px;padding:0 4px;text-decoration:underline}
+.source-result-page .summary-clear:hover{color:#ff6a00}
 .source-result-page .result-filter-card .result-range-field{gap:12px}
 .source-result-page .result-filter-card .result-range-actions{margin-left:auto}
 .source-result-page .result-filter-card .result-filter-error{margin:12px 0 0}

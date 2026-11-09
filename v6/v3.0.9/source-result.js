@@ -90,7 +90,48 @@
     document.getElementById('resultFilterEmpty').hidden = visible.length > 0;
     document.getElementById('resultMatchedCount').textContent = ` · 匹配商品：${visible.length} / ${items.length}`;
     document.getElementById('resultPaginationTotal').textContent = `共 ${rows.filter(row => !row.hidden).length} 条搜索图片结果`;
+    renderSummary();
     syncSelection();
+  }
+
+  function renderSummary() {
+    const summary = document.getElementById('resultFilterSummary');
+    const chips = document.getElementById('resultFilterChips');
+    const entries = [];
+    const rangeLabels = [
+      ['qtyMin', '月件数 ≥ ', ' 件'], ['qtyMax', '月件数 ≤ ', ' 件'],
+      ['priceMin', '批发价 ≥ ', ' 元'], ['priceMax', '批发价 ≤ ', ' 元']
+    ];
+    rangeLabels.forEach(([key, prefix, suffix]) => {
+      if (ranges[key] === null) return;
+      entries.push({ text: prefix + ranges[key] + suffix, clear: () => {
+        ranges[key] = null;
+        document.getElementById({ qtyMin: 'resultQtyMin', qtyMax: 'resultQtyMax', priceMin: 'resultPriceMin', priceMax: 'resultPriceMax' }[key]).value = '';
+      } });
+    });
+    page.querySelectorAll('.result-filter-panel input:checked').forEach(input => {
+      if (input.type === 'radio' && !input.value) return;
+      const name = input.closest('label')?.textContent.trim();
+      if (!name) return;
+      entries.push({ text: name, clear: () => {
+        input.checked = false;
+        if (input.type === 'radio') page.querySelector('.result-filter-panel input[type="radio"][value=""]').checked = true;
+      } });
+    });
+    chips.replaceChildren();
+    entries.forEach(entry => {
+      const chip = document.createElement('span');
+      chip.className = 'summary-chip';
+      chip.append(entry.text);
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.textContent = '×';
+      remove.setAttribute('aria-label', '清除条件：' + entry.text);
+      remove.addEventListener('click', () => { entry.clear(); applyFilters(); });
+      chip.append(remove);
+      chips.append(chip);
+    });
+    summary.hidden = entries.length === 0;
   }
 
   function readRanges() {
@@ -165,6 +206,14 @@
       clearTimeout(rangeInputTimer);
       readRanges();
     });
+  });
+  document.getElementById('resultClearAll').addEventListener('click', () => {
+    form.querySelectorAll('.result-range-panel input').forEach(input => { input.value = ''; });
+    Object.keys(ranges).forEach(key => { ranges[key] = null; });
+    page.querySelectorAll('.result-filter-panel input').forEach(input => { input.checked = input.type === 'radio' && input.value === ''; });
+    error.hidden = true;
+    form.querySelectorAll('input').forEach(input => input.removeAttribute('aria-invalid'));
+    applyFilters();
   });
   allCheckbox.addEventListener('change', () => {
     visibleItems().forEach(item => { if (allCheckbox.checked) selected.add(item); else selected.delete(item); });
