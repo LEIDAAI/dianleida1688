@@ -111,7 +111,6 @@
         input.setAttribute('aria-invalid', 'true');
         error.textContent = label + (integer ? '请输入大于或等于 0 的整数' : '请输入大于或等于 0、最多两位小数的金额');
         error.hidden = false;
-        input.focus();
         return;
       }
       next[key] = number;
@@ -122,7 +121,6 @@
         input.setAttribute('aria-invalid', 'true');
         error.textContent = label + '的最小值不能大于最大值';
         error.hidden = false;
-        input.focus();
         return;
       }
     }
@@ -157,15 +155,16 @@
     input.name = 'resultSort';
     input.addEventListener('change', () => sortItems(input.value));
   });
-  document.getElementById('resultResetBtn').addEventListener('click', () => {
-    form.reset();
-    Object.keys(ranges).forEach(key => { ranges[key] = null; });
-    page.querySelectorAll('.result-filter-panel input').forEach(input => { input.checked = input.type === 'radio' && input.value === ''; });
-    form.querySelectorAll('input').forEach(input => input.removeAttribute('aria-invalid'));
-    error.hidden = true;
-    selected.clear();
-    sortItems('match');
-    applyFilters();
+  let rangeInputTimer;
+  form.querySelectorAll('.result-range-panel input').forEach(input => {
+    input.addEventListener('input', () => {
+      clearTimeout(rangeInputTimer);
+      rangeInputTimer = setTimeout(readRanges, 250);
+    });
+    input.addEventListener('change', () => {
+      clearTimeout(rangeInputTimer);
+      readRanges();
+    });
   });
   allCheckbox.addEventListener('change', () => {
     visibleItems().forEach(item => { if (allCheckbox.checked) selected.add(item); else selected.delete(item); });
