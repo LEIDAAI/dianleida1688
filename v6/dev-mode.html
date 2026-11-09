@@ -206,15 +206,27 @@ body { font-family:"PingFang SC","Microsoft YaHei",sans-serif; color:var(--text)
       <div class="version-pages open" data-version="version-plan">
         <button class="layer-item" data-page="version-plan.html" data-search="版本规划"><span class="layer-icon icon-p" style="background:#f59e0b;">V</span>版本规划</button>
       </div>
+      <!-- V3.0.9 图搜批量寻源优化 -->
+      <div class="version-folder open" data-version="v3.0.9">
+        <span class="folder-arrow">▶</span>
+        <span>V3.0.9</span>
+        <span class="folder-name">图搜批量寻源优化</span>
+        <span class="version-badge">最新</span>
+      </div>
+      <div class="version-pages open" data-version="v3.0.9">
+        <button class="layer-item active" data-page="v3.0.9/search-agent-yuque.html" data-search="V3.0.9 图搜批量寻源优化 创建图搜寻源 效果图 HTML CSS JS"><span class="layer-icon icon-p">C</span>创建图搜寻源</button>
+        <button class="layer-item" data-page="v3.0.9/search-agent-yuque.html?page=list" data-search="V3.0.9 图搜批量寻源优化 任务列表 效果图 HTML CSS JS"><span class="layer-icon icon-p" style="background:#ffa502;">L</span>任务列表</button>
+        <button class="layer-item" data-page="v3.0.9/search-agent-yuque.html?page=result" data-search="V3.0.9 图搜批量寻源优化 寻源结果 效果图 HTML CSS JS"><span class="layer-icon icon-p" style="background:#00b894;">R</span>寻源结果</button>
+        <button class="layer-item" data-page="v3.0.9/search-agent-yuque.html?page=package" data-search="V3.0.9 图搜批量寻源优化 套餐配置 效果图 HTML CSS JS"><span class="layer-icon icon-p" style="background:#3742fa;">P</span>套餐配置</button>
+      </div>
       <!-- V3.0.8 跨境电商选品Agent -->
-      <div class="version-folder open" data-version="v3.0.8">
+      <div class="version-folder" data-version="v3.0.8">
         <span class="folder-arrow">▶</span>
         <span>V3.0.8</span>
         <span class="folder-name">跨境电商选品Agent</span>
-        <span class="version-badge">最新</span>
       </div>
-      <div class="version-pages open" data-version="v3.0.8">
-        <button class="layer-item active" data-page="https://leidaai.github.io/leidaaiqiantai/" data-search="V3.0.8 跨境电商选品Agent 前台 电商 选品"><span class="layer-icon icon-p" style="background:#ff6b6b;">前</span>跨境电商选品-前台</button>
+      <div class="version-pages" data-version="v3.0.8">
+        <button class="layer-item" data-page="https://leidaai.github.io/leidaaiqiantai/" data-search="V3.0.8 跨境电商选品Agent 前台 电商 选品"><span class="layer-icon icon-p" style="background:#ff6b6b;">前</span>跨境电商选品-前台</button>
         <button class="layer-item" data-page="https://leidaai.github.io/leidaaisystem/#/login?redirect=/experts" data-search="V3.0.8 跨境电商选品Agent 后台 管理 专家"><span class="layer-icon icon-p" style="background:#7047ff;">后</span>跨境电商选品-后台</button>
       </div>
       <!-- V3.0.6 1688 Angent -->
@@ -276,14 +288,14 @@ body { font-family:"PingFang SC","Microsoft YaHei",sans-serif; color:var(--text)
   </aside>
   <main class="stage">
     <div class="frame-shell">
-      <iframe id="designFrame" src="https://leidaai.github.io/leidaaiqiantai/" title="设计页面预览"></iframe>
+      <iframe id="designFrame" src="v3.0.9/search-agent-yuque.html" title="设计页面预览"></iframe>
       <button class="expand-spec-btn" id="expandSpecBtn" title="展开原型说明">原型说明</button>
     </div>
     <aside class="spec-panel collapsed" id="specPanel">
       <div class="spec-header">
         <div class="spec-header-left">
           <h3><a class="spec-title-link" id="specYuqueTitleLink" href="https://www.yuque.com/u26544515/sldqp9/xlf8hgmqhski5mfe?singleDoc#" target="_blank" rel="noopener" title="打开语雀原型说明">原型说明 ↗</a></h3>
-          <span class="spec-page-tag" id="specPageTag">跨境电商选品-前台</span>
+          <span class="spec-page-tag" id="specPageTag">创建图搜寻源</span>
         </div>
         <div class="spec-header-actions">
           <button class="spec-btn" id="toggleSpecBtn" title="收起">▶</button>
@@ -376,6 +388,7 @@ body { font-family:"PingFang SC","Microsoft YaHei",sans-serif; color:var(--text)
   // ===== 页面切换 =====
   const INNER_PAGE_VERSION = '2026110301';
   const VERSIONED_PATHS = [
+    'v3.0.9/search-agent-yuque.html',
     'v2.9.3/search-agent-yuque.html',
     'v2.9.5/v2-upgrade-v3-plugin-update.html',
     'v2.9.5/v3-upgrade-v3-plugin-update.html',
@@ -410,14 +423,11 @@ body { font-family:"PingFang SC","Microsoft YaHei",sans-serif; color:var(--text)
       const dp = item.dataset.page || '';
       return VERSIONED_PATHS.some(prefix => dp.startsWith(prefix));
     });
-    let targetItem = null;
-    matchList.forEach(item => {
+    const activeVersion = (frame.getAttribute('src') || '').match(/^(v(?:2\.9\.3|3\.0\.9))\//)?.[1];
+    const targetItem = matchList.find(item => {
       const dp = item.dataset.page || '';
-      if (page === 'create' && !dp.includes('page=') && dp.includes('v2.9.3')) {
-        targetItem = item;
-      } else if (dp.includes('page=' + page)) {
-        targetItem = item;
-      }
+      if (activeVersion && !dp.startsWith(activeVersion + '/')) return false;
+      return page === 'create' ? !dp.includes('page=') && /v(?:2\.9\.3|3\.0\.9)\//.test(dp) : dp.includes('page=' + page);
     });
     if (targetItem) {
       items.forEach(node => node.classList.remove('active'));

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>V3.0.9 图搜批量寻源优化</title>
+<link rel="icon" type="image/png" href="logo.png">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body { font-family: "PingFang SC", "Microsoft YaHei", sans-serif; background: #f5f5f7; color: #1d2129; }
+  button, input, select { font-family: inherit; }
+  .tabs-wrap { height: 48px; display: flex; align-items: center; padding: 0 20px; background: #fff; border-bottom: 1px solid #e5e6eb; gap: 4px; position: sticky; top: 0; z-index: 10; }
+  .tab-btn { height: 32px; padding: 0 16px; border: 0; border-radius: 6px; background: transparent; color: #4e5969; font-size: 13px; font-weight: 500; cursor: pointer; transition: background .15s, color .15s; text-decoration: none; display: inline-flex; align-items: center; }
+  .tab-btn:hover { background: #f2f3f5; color: #1d2129; }
+  .tab-btn.active { background: #f0ebff; color: #6236ff; font-weight: 600; }
+  .tab-btn .tab-dot { display: inline-block; width: 10px; height: 10px; margin-right: 6px; border-radius: 3px; vertical-align: -1px; }
+  .tab-preview .tab-dot { background: #ff6b6b; }
+  .tab-spec .tab-dot { background: #3370ff; }
+  .tab-html .tab-dot { background: #e34f26; }
+  .tab-css .tab-dot { background: #1572b6; }
+  .tab-js .tab-dot { background: #b58b00; }
+  .panels { height: calc(100vh - 48px); overflow: hidden; position: relative; }
+  .panel { position: absolute; inset: 0; display: none; overflow: auto; }
+  .panel.active { display: block; }
+  #panel-preview iframe { width: 100%; height: 100%; border: 0; display: block; }
+  .spec-panel-page { background: #f7f8fa; padding: 18px; }
+  .spec-doc { max-width: 1500px; height: calc(100vh - 84px); margin: 0 auto; background: #fff; border: 1px solid #e5e6eb; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; }
+  .spec-head { padding: 16px 20px; border-bottom: 1px solid #eef0f2; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-shrink: 0; }
+  .spec-head-left { min-width: 0; }
+  .spec-title { font-size: 18px; font-weight: 700; margin: 0 0 4px; display: flex; align-items: center; gap: 10px; }
+  .spec-title .section-tag { font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 4px; background: #f0ebff; color: #6236ff; }
+  .spec-sub { font-size: 12px; color: #86909c; }
+  .spec-actions { display: flex; gap: 8px; flex-shrink: 0; }
+  .spec-link-btn { height: 32px; padding: 0 14px; border: 1px solid #dfe3e8; border-radius: 6px; background: #fff; color: #4e5969; font-size: 12px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: .15s; }
+  .spec-link-btn:hover { border-color: #3370ff; color: #3370ff; }
+  .spec-link-btn.primary { background: #3370ff; border-color: #3370ff; color: #fff; }
+  .spec-link-btn.primary:hover { background: #2455d9; color: #fff; }
+  .spec-iframe-wrap { flex: 1; position: relative; background: #fafbfc; }
+  .spec-iframe { width: 100%; height: 100%; border: 0; display: block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .code-panel { padding: 20px; }
+  .code-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .code-header small { color: #86909c; font: 12px Consolas, monospace; }
+  .section-tag { display: inline-block; margin-left: 8px; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; background: #f0ebff; color: #6236ff; }
+  .copy-btn { height: 30px; padding: 0 14px; border: 1px solid #e5e6eb; border-radius: 6px; background: #fff; color: #4e5969; font-size: 12px; cursor: pointer; transition: .15s; }
+  .copy-btn:hover { border-color: #6236ff; color: #6236ff; }
+  .copy-btn.ok { background: #16a36a; border-color: #16a36a; color: #fff; }
+  pre.code { margin: 0; padding: 20px; overflow: auto; border: 1px solid #e5e6eb; border-radius: 10px; background: #fafbfc; color: #334155; font: 13px/1.7 Consolas, "Microsoft YaHei", monospace; white-space: pre; tab-size: 2; min-height: calc(100% - 50px); }
+  @media(max-width:900px){ .spec-panel-page { padding: 9px; } .spec-head { flex-direction: column; align-items: flex-start; } }
+</style>
+</head>
+<body>
+  <div class="tabs-wrap" role="tablist">
+    <button class="tab-btn tab-preview active" data-tab="preview" role="tab"><span class="tab-dot"></span>效果图</button>
+    <a class="tab-btn tab-spec" id="yuqueTabLink" href="https://www.yuque.com/u26544515/sldqp9/xlf8hgmqhski5mfe?singleDoc#" target="_blank" rel="noopener" role="tab"><span class="tab-dot"></span>原型说明 ↗</a>
+    <button class="tab-btn tab-html" data-tab="html" role="tab"><span class="tab-dot"></span>HTML</button>
+    <button class="tab-btn tab-css" data-tab="css" role="tab"><span class="tab-dot"></span>CSS</button>
+    <button class="tab-btn tab-js" data-tab="js" role="tab"><span class="tab-dot"></span>JS</button>
+  </div>
+  <div class="panels">
+    <section class="panel active" id="panel-preview"><iframe id="previewFrame" src="ai-three-step.html?v=2026081410" title="效果图"></iframe></section>
+    <section class="panel spec-panel-page" id="panel-spec">
+      <article class="spec-doc">
+        <header class="spec-head">
+          <h1 class="spec-title">原型说明</h1>
+          <div class="spec-sub">点击下方按钮在新标签页打开语雀《店雷达原型说明》文档</div>
+        </header>
+        <div class="spec-actions" style="padding:24px 32px;display:flex;flex-direction:column;align-items:flex-start;gap:16px;">
+          <a class="spec-link-btn" id="specExternalLink" href="https://www.yuque.com/u26544515/sldqp9/xlf8hgmqhski5mfe?singleDoc#" target="_blank" rel="noopener" style="height:38px;padding:0 18px;font-size:14px;background:#3370ff;border-color:#3370ff;color:#fff;">新标签页打开语雀 ↗</a>
+          <div class="spec-sub" id="specHint" style="font-size:12px;color:#86909c;">点击后会在新标签页显示语雀文档。当前模块：<span id="specPageLabel" style="color:#6236ff;font-weight:600;">创建图搜寻源</span></div>
+        </div>
+      </article>
+    </section>
+    <section class="panel code-panel" id="panel-html"><div class="code-header"><small id="htmlFileName">ai-three-step.html</small><button class="copy-btn" data-copy="html">复制 HTML</button></div><pre class="code" id="codeHtml">正在加载…</pre></section>
+    <section class="panel code-panel" id="panel-css"><div class="code-header"><small id="cssFileName">ai-three-step.css</small><button class="copy-btn" data-copy="css">复制 CSS</button></div><pre class="code" id="codeCss">正在加载…</pre></section>
+    <section class="panel code-panel" id="panel-js"><div class="code-header"><small id="jsFileName">ai-three-step.js</small><button class="copy-btn" data-copy="js">复制 JS</button></div><pre class="code" id="codeJs">正在加载…</pre></section>
+  </div>
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  const pageParam = urlParams.get('page');
+  const PREVIEW_VERSION = '2026081410';
+  const IMAGE_CACHE_BUST = '2026081410';
+  const IMAGE_FALLBACK = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="240" height="160" viewBox="0 0 240 160"><rect width="240" height="160" rx="16" fill="#f3f5f7"/><rect x="24" y="28" width="192" height="104" rx="12" fill="#ffffff" stroke="#d9dee6"/><path d="M48 108l28-28 24 22 20-18 32 24 24-18" fill="none" stroke="#c4cad4" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="92" cy="64" r="12" fill="#d8dde6"/></svg>');
+  const previewFrame = document.getElementById('previewFrame');
+  let currentPage = 'create';
+  let iframeSrc = `ai-three-step.html?v=${PREVIEW_VERSION}`;
+  if (pageParam === 'list') { currentPage = 'list'; iframeSrc = `ai-three-step.html?page=list&v=${PREVIEW_VERSION}`; }
+  else if (pageParam === 'result') { currentPage = 'result'; iframeSrc = `ai-three-step.html?page=result&v=${PREVIEW_VERSION}`; }
+  else if (pageParam === 'package') { currentPage = 'package'; iframeSrc = `ai-three-step.html?page=package&v=${PREVIEW_VERSION}`; }
+  previewFrame.src = iframeSrc;
+
+  const sectionLabels = { create: '创建图搜寻源', list: '任务列表', result: '寻源结果', package: '套餐配置' };
+  const yuqueAnchors = { create: '', list: 'WsfIo', result: 'cPhHn', package: 'ZZa2l' };
+  const YUQUE_BASE = 'https://www.yuque.com/u26544515/sldqp9/xlf8hgmqhski5mfe?singleDoc#';
+
+  function isRemoteImage(src) {
+    return /^https?:\/\//i.test(src) || /^\/\//.test(src);
+  }
+
+  function appendCacheToken(url) {
+    if (!url || url.startsWith('data:') || url.startsWith('blob:')) return url;
+    if (url.includes('cache-bust=')) return url;
+    return url + (url.includes('?') ? '&' : '?') + 'cache-bust=' + IMAGE_CACHE_BUST;
+  }
+
+  function installImageGuard(doc) {
+    if (!doc || !doc.documentElement || doc.documentElement.dataset.imageGuardInstalled === 'true') return;
+    doc.documentElement.dataset.imageGuardInstalled = 'true';
+    const win = doc.defaultView;
+    const seen = new WeakSet();
+
+    function guard(img) {
+      if (!img || seen.has(img)) return;
+      const originalSrc = img.getAttribute('src') || '';
+      if (!isRemoteImage(originalSrc)) return;
+      seen.add(img);
+      let retries = 0;
+      img.loading = 'eager';
+      img.decoding = 'async';
+      img.style.background = '#f3f5f7';
+      img.style.objectFit = img.style.objectFit || 'cover';
+      img.style.minHeight = img.style.minHeight || '24px';
+      img.addEventListener('error', () => {
+        if (retries < 2) {
+          retries += 1;
+          const retrySrc = appendCacheToken(originalSrc) + (appendCacheToken(originalSrc).includes('?') ? '&' : '?') + 'retry=' + retries;
+          img.src = retrySrc;
+          return;
+        }
+        img.onerror = null;
+        img.src = IMAGE_FALLBACK;
+        img.alt = img.alt || '图片加载失败';
+        img.style.objectFit = 'contain';
+        img.style.padding = '12px';
+      }, { once: false });
+      img.src = appendCacheToken(originalSrc);
+    }
+
+    function scan(root) {
+      if (!root || !root.querySelectorAll) return;
+      root.querySelectorAll('img[src]').forEach(guard);
+    }
+
+    scan(doc);
+    const observer = new win.MutationObserver(mutations => {
+      for (const mutation of mutations) {
+        mutation.addedNodes.forEach(node => {
+          if (!node || node.nodeType !== 1) return;
+          if (node.tagName === 'IMG') {
+            guard(node);
+            return;
+          }
+          scan(node);
+        });
+        if (mutation.type === 'attributes' && mutation.target && mutation.target.tagName === 'IMG') {
+          guard(mutation.target);
+        }
+      }
+    });
+    observer.observe(doc.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['src'] });
+    win.addEventListener('beforeunload', () => observer.disconnect(), { once: true });
+  }
+
+  function bindPreviewImageGuard() {
+    try {
+      const doc = previewFrame.contentDocument;
+      if (doc && doc.documentElement) installImageGuard(doc);
+    } catch (e) {}
+  }
+
+  previewFrame.addEventListener('load', () => { setTimeout(bindPreviewImageGuard, 0); });
+  setTimeout(bindPreviewImageGuard, 500);
+
+  function getYuqueUrl(page) {
+    const anchor = yuqueAnchors[page] || '';
+    return YUQUE_BASE + (anchor ? encodeURIComponent(anchor) : '');
+  }
+
+  function updateCodeHeaders(page) {
+    const label = sectionLabels[page] || '';
+    document.getElementById('htmlFileName').innerHTML = `ai-three-step.html <span class="section-tag">${label}</span>`;
+    document.getElementById('cssFileName').innerHTML = `ai-three-step.css <span class="section-tag">${label}</span>`;
+    document.getElementById('jsFileName').innerHTML = `ai-three-step.js <span class="section-tag">${label}</span>`;
+    const url = getYuqueUrl(page);
+    const yuqueLink = document.getElementById('yuqueTabLink');
+    if (yuqueLink) yuqueLink.href = url;
+    document.getElementById('specExternalLink').href = url;
+    document.getElementById('specPageLabel').textContent = label;
+    document.title = label;
+  }
+
+  updateCodeHeaders(currentPage);
+
+  const tabs = document.querySelectorAll('.tab-btn');
+  const panels = document.querySelectorAll('.panel');
+  tabs.forEach(btn => btn.addEventListener('click', () => {
+    const tab = btn.dataset.tab;
+    tabs.forEach(b => b.classList.toggle('active', b === btn));
+    panels.forEach(p => p.classList.toggle('active', p.id === 'panel-' + tab));
+  }));
+
+  const codeCache = { html: '', css: '', js: '' };
+  function extractHtmlSection(text, section) {
+    const sectionIds = { create: 'page-create', list: 'page-list', result: 'page-result', package: 'page-package' };
+    const id = sectionIds[section];
+    if (!id) return text;
+    const regex = new RegExp('<section[^>]*id="' + id + '"[^>]*>[\\s\\S]*?<\\/section>', 'g');
+    const match = text.match(regex);
+    return match ? match[0].trim() : text;
+  }
+  function extractCssSection(text, section) {
+    const sectionMap = {
+      create: [['/* ===== CSS 变量 ===== */', '/* ===== 任务列表功能横幅 ===== */'], ['/* ===== 创建卡片 ===== */', '/* ===== 筛选卡片 ===== */'], ['/* ===== 编辑模式 ===== */', '/* ===== 滚动条美化 ===== */']],
+      list: [['/* ===== 任务列表功能横幅 ===== */', '/* ===== 创建卡片 ===== */'], ['/* ===== 张数统计 ===== */', '/* ===== 筛选卡片 ===== */'], ['/* ===== 筛选卡片 ===== */', '/* ===== 寻源结果 - 搜索图源信息条 ===== */'], ['/* ===== 分页 ===== */', '/* ===== 编辑模式 ===== */']],
+      result: [['/* ===== 寻源结果 - 搜索图源信息条 ===== */', '/* ===== 分页 ===== */']]
+    };
+    const ranges = sectionMap[section];
+    if (!ranges) return text;
+    const parts = [];
+    for (const [start, end] of ranges) {
+      const startIdx = text.indexOf(start), endIdx = text.indexOf(end);
+      if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) parts.push(text.substring(startIdx, endIdx).trim());
+    }
+    return parts.length > 0 ? parts.join('\n\n') : text;
+  }
+  function extractJsSection(text, section) {
+    const sectionMap = { create: [['// ===== 模拟任务数据 =====', '// ===== 任务列表 =====']], list: [['// ===== 张数管理 =====', '// ===== 任务列表 ====='], ['// ===== 任务列表 =====', '// ===== 寻源结果数据 =====']], result: [['// ===== 寻源结果数据 =====', null]] };
+    const ranges = sectionMap[section];
+    if (!ranges) return text;
+    const parts = [];
+    for (const [start, end] of ranges) {
+      const startIdx = text.indexOf(start), endIdx = end ? text.indexOf(end) : text.length;
+      if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) parts.push(text.substring(startIdx, endIdx).trim());
+    }
+    return parts.length > 0 ? parts.join('\n\n') : text;
+  }
+  function loadCode(type, url, targetId, extractFn) {
+    fetch(url).then(r => { if (!r.ok) throw new Error('加载失败'); return r.text(); })
+      .then(text => { const extracted = extractFn(text, currentPage); codeCache[type] = extracted; document.getElementById(targetId).textContent = extracted; })
+      .catch(() => { document.getElementById(targetId).textContent = '加载失败：' + url; });
+  }
+  function reloadAllCode() {
+    loadCode('html', 'ai-three-step.html', 'codeHtml', extractHtmlSection);
+    loadCode('css', 'ai-three-step.css', 'codeCss', extractCssSection);
+    loadCode('js', 'ai-three-step.js', 'codeJs', extractJsSection);
+  }
+  reloadAllCode();
+  document.querySelectorAll('.copy-btn').forEach(btn => btn.addEventListener('click', async () => {
+    const type = btn.dataset.copy, text = codeCache[type];
+    if (!text) return;
+    try { await navigator.clipboard.writeText(text); const old = btn.textContent; btn.textContent = '已复制'; btn.classList.add('ok'); setTimeout(() => { btn.textContent = old; btn.classList.remove('ok'); }, 1600); }
+    catch (e) { btn.textContent = '复制失败'; }
+  }));
+  window.addEventListener('message', (e) => {
+    if (e.data && e.data.type === 'pageChange') {
+      const page = e.data.page;
+      if (!page || !sectionLabels[page]) return;
+      currentPage = page;
+      const newUrl = new URL(window.location);
+      if (page === 'create') newUrl.searchParams.delete('page'); else newUrl.searchParams.set('page', page);
+      window.history.replaceState({}, '', newUrl);
+      updateCodeHeaders(page);
+      reloadAllCode();
+      setTimeout(bindPreviewImageGuard, 0);
+    }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>创建图搜寻源</title>
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="stylesheet" href="ai-three-step.css?v=2026081118">
+</head>
+<body>
+
+<!-- ===== 页面主体 ===== -->
+<div class="page-container">
+
+  <!-- ===== 创建图搜寻源 ===== -->
+  <section class="page-panel active" id="page-create">
+    <div class="create-card">
+      <div class="card-header">
+        <h2 class="card-title" data-editable data-edit-label="创建卡片标题">创建图搜寻源</h2>
+        <p class="card-desc">填写任务信息，选择图搜方式，开始批量寻源</p>
+      </div>
+
+      <div class="card-body">
+        <!-- 任务名称 -->
+        <div class="form-item">
+          <div class="form-label">
+            <span class="required">*</span>
+            <span data-editable data-edit-label="任务名称标签">任务名称</span>
+          </div>
+          <input class="form-input" type="text" id="taskNameInput" placeholder="请输入任务名称，方便后续查找">
+        </div>
+
+        <!-- 图搜方式 -->
+        <div class="form-item">
+          <div class="form-label" data-editable data-edit-label="图搜方式标签">图搜方式</div>
+
+          <div class="search-tabs" role="tablist">
+            <button class="tab-btn active" data-tab="link" role="tab">
+              <span class="tab-icon">🔗</span>
+              <span>图片链接</span>
+            </button>
+            <button class="tab-btn" data-tab="file" role="tab">
+              <span class="tab-icon">📋</span>
+              <span>文件上传</span>
+            </button>
+            <button class="tab-btn" data-tab="image" role="tab">
+              <span class="tab-icon">🖼️</span>
+              <span>上传图片</span>
+            </button>
+          </div>
+
+          <!-- 图片链接 Tab -->
+          <div class="tab-panel active" id="panel-link">
+            <div class="link-upload-wrap">
+              <p class="panel-hint">每行粘贴一个图片URL地址，支持 http/https 链接，最多 1000 条</p>
+              <textarea id="linkTextarea" class="url-textarea" placeholder="https://example.com/img1.jpg&#10;https://example.com/img2.png&#10;https://example.com/img3.webp&#10;..." rows="8"></textarea>
+              <div class="link-actions">
+                <button class="btn btn-ghost" id="clearLinkBtn">
+                  <span>清空</span>
+                </button>
+                <button class="btn btn-outline" id="parseLinkBtn">
+                  <span>解析链接</span>
+                </button>
+              </div>
+              <!-- 链接预览网格 -->
+              <div class="link-preview" id="linkPreview" style="display: none;">
+                <div class="file-list-header">
+                  <span>链接预览</span>
+                  <span class="file-count" id="linkCount">0 条</span>
+                </div>
+                <div class="link-thumb-grid" id="linkThumbGrid"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 文件上传 Tab -->
+          <div class="tab-panel" id="panel-file">
+            <!-- 上传前状态 -->
+            <div id="fileUploadEmpty">
+              <div class="upload-area" id="fileDropZone">
+                <div class="upload-icon">
+                  <svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M32 42V14M32 14L20 26M32 14L44 26" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M12 34v12a6 6 0 006 6h28a6 6 0 006-6V34" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                  </svg>
+                </div>
+                <div class="upload-title">点击或将文件拖拽到此处<em>上传</em></div>
+                <div class="upload-desc">支持 xlsx、xls 格式，单个文件不超过 30M，最多 1000 条</div>
+                <input type="file" class="hidden-input" id="fileInput" accept=".xlsx,.xls">
+              </div>
+              <div class="file-actions">
+                <span></span>
+                <button class="btn-download-template">
+                  <span class="dl-icon">⬇</span>
+                  <span data-editable data-edit-label="下载模板按钮">下载模板</span>
+                </button>
+              </div>
+              <div class="tip-box" data-editable data-edit-label="文件上传说明">
+                <strong>导入说明：</strong><br>
+                1. 本功能支持1000条图片链接批量寻源；<br>
+                2. 请先下载模板文件，按格式要求填写内容；<br>
+                3. 导入格式为xlsx/xls（手动修改文件后缀无效），行数不超过1000张，文件大小不超过30M。
+              </div>
+            </div>
+
+            <!-- 上传中状态 -->
+            <div id="fileUploading" style="display:none;">
+              <div class="upload-progress">
+                <div class="progress-head">
+                  <span id="uploadingFileName">正在上传...</span>
+                  <span id="uploadingPercent">0%</span>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress-fill" id="progressFill"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 上传成功状态 -->
+            <div id="fileUploaded" style="display:none;">
+              <div class="file-selected">
+                <div class="file-icon">XLS</div>
+                <div class="file-info">
+                  <div class="file-name" id="selectedFileName">店雷达 1688选品库-近30天 2026-08-03 174118.xls</div>
+                  <div class="file-meta" id="selectedFileMeta">2.4 MB · 328 条数据</div>
+                </div>
+                <div class="file-status">
+                  <span class="status-dot">✓</span>
+                  <span>已选择</span>
+                </div>
+                <button class="file-remove" id="removeFileBtn" title="移除">✕</button>
+              </div>
+            </div>
+
+            <!-- 上传失败状态 -->
+            <div id="fileUploadError" style="display:none;">
+              <div class="file-selected" style="background: var(--danger-bg); border-color: #ffd8d6;">
+                <div class="file-icon" style="background: linear-gradient(135deg, var(--danger), #ff7875);">XLS</div>
+                <div class="file-info">
+                  <div class="file-name" style="color: var(--danger);">店雷达 1688选品库-近30天 2026-08-03 174118.xls</div>
+                  <div class="file-meta" style="color: var(--danger);">模板格式异常，详细原因：图片链接校验失败</div>
+                </div>
+                <button class="file-remove" id="removeErrorFileBtn" title="移除">✕</button>
+              </div>
+              <div class="file-error-tip">
+                <span class="err-icon">⚠️</span>
+                <span data-editable data-edit-label="文件错误提示">模板格式异常，详细原因：图片链接校验失败，请检查模板格式后重新上传。</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 上传图片 Tab -->
+          <div class="tab-panel" id="panel-image">
+            <div class="image-upload-grid" id="imageGrid">
+              <div class="image-upload-item" id="imageUploadBtn" title="点击上传图片">
+                <span class="plus">+</span>
+                <span class="upload-text">上传图片</span>
+                <input type="file" class="hidden-input" id="imageInput" accept="image/*" multiple>
+              </div>
+            </div>
+            <div class="image-count-tip">
+              已上传 <span id="imageCount">0</span> / 1000 张
+            </div>
+          </div>
+        </div>
+
+        <!-- 实时张数统计 -->
+        <div class="credits-stats" id="creditsStats" style="display:none;">
+          <div class="stats-item">
+            <span class="stats-label">已上传</span>
+            <span class="stats-value" id="uploadedCount">0 张</span>
+          </div>
+          <div class="stats-divider"></div>
+          <div class="stats-item">
+            <span class="stats-label">预计扣除</span>
+            <span class="stats-value deduction" id="deductionCount">0 张</span>
+          </div>
+          <div class="stats-divider"></div>
+          <div class="stats-item">
+            <span class="stats-label">剩余张数</span>
+            <span class="stats-value remaining" id="remainingCredits">0 张</span>
+          </div>
+          <button class="stats-purchase-btn" id="statsPurchaseBtn" style="display:none;" onclick="openPurchaseModal()">
+            <span>💰</span>
+            <span>增购张数</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <button class="btn btn-default" id="resetBtn">重置</button>
+        <button class="btn btn-primary" id="submitBtn">
+          <span class="btn-icon">🚀</span>
+          <span>开始寻源</span>
+        </button>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ===== 任务列表 ===== -->
+  <section class="page-panel" id="page-list">
+    <!-- 功能介绍横幅 -->
+    <div class="list-banner">
+      <div class="list-banner-content">
+        <h2 class="list-banner-title">1688图搜<span class="highlight">批量寻源任务</span></h2>
+        <p class="list-banner-desc">支持一次性上传1000条图片链接，自动搜索1688货源商品</p>
+      </div>
+      <button class="list-banner-btn" onclick="goCreatePage()">
+        <span class="banner-btn-icon">+</span>
+        <span>创建寻源需求</span>
+      </button>
+    </div>
+
+    <!-- 剩余张数信息条 -->
+    <div class="credits-bar">
+      <div class="credits-info">
+        <div class="credits-icon">🎫</div>
+        <div class="credits-detail">
+          <span class="credits-label">剩余寻源张数</span>
+          <span class="credits-value" id="userCreditsDisplay">2 <span class="credits-unit">张</span></span>
+          <span class="credits-expire">有效期至: 2027-08-10</span>
+        </div>
+      </div>
+      <button class="btn btn-primary credits-purchase-btn" id="purchaseBtn">
+        <span>💰</span>
+        <span>增购张数</span>
+      </button>
+    </div>
+
+    <!-- 套餐到期提醒 -->
+    <div class="subscription-expired-notice" id="subscriptionExpiredNotice">
+      <span class="subscription-expired-icon">!</span>
+      <span class="subscription-expired-text">当前套餐已到期，寻源列表结果将在7天后删除；请尽快续费</span>
+      <a class="subscription-renew-link" href="https://www.dianleida.net/1688/competeShop/monitorBuy" target="_blank" rel="noopener noreferrer">立即续费</a>
+    </div>
+
+    <!-- 筛选区 -->
+    <div class="filter-card">
+      <div class="filter-row">
+        <div class="filter-item">
+          <label class="filter-label">任务名称</label>
+          <input class="form-input filter-input" type="text" id="filterTaskName" placeholder="请输入任务名称">
+        </div>
+        <div class="filter-item">
+          <label class="filter-label">图搜方式</label>
+          <select class="form-input filter-input" id="filterType">
+            <option value="">全部</option>
+            <option value="link">图片链接</option>
+            <option value="file">文件上传</option>
+            <option value="image">上传图片</option>
+          </select>
+        </div>
+        <div class="filter-item">
+          <label class="filter-label">任务状态</label>
+          <select class="form-input filter-input" id="filterStatus">
+            <option value="">全部状态</option>
+            <option value="running">执行中</option>
+            <option value="waiting">待执行</option>
+            <option value="stopped">已终止</option>
+            <option value="done">已完成</option>
+          </select>
+        </div>
+        <div class="filter-item filter-date">
+          <label class="filter-label">创建时间</label>
+          <input class="form-input filter-input" type="date" id="filterDateStart">
+          <span class="date-sep">至</span>
+          <input class="form-input filter-input" type="date" id="filterDateEnd">
+        </div>
+      </div>
+      <div class="filter-actions">
+        <button class="btn btn-primary" id="searchBtn">🔍 查询</button>
+        <button class="btn btn-default" id="resetFilterBtn">重置</button>
+      </div>
+    </div>
+
+    <!-- 任务列表标题 -->
+    <div class="section-header">
+      <h2 class="section-title">任务列表</h2>
+      <span class="section-badge" id="totalCountBadge">共 0 条任务</span>
+      <button class="btn btn-default refresh-inline" id="refreshBtn">🔄 刷新</button>
+    </div>
+
+    <!-- 任务列表表格 -->
+    <div class="table-card">
+      <table class="task-table">
+        <thead>
+          <tr>
+            <th style="width: 20%;">任务名称</th>
+            <th style="width: 12%;">图搜方式</th>
+            <th style="width: 12%;">任务状态</th>
+            <th style="width: 14%;">已寻源 / 总数</th>
+            <th style="width: 10%;">扣除张数</th>
+            <th style="width: 12%;">创建时间</th>
+            <th style="width: 22%;">操作</th>
+          </tr>
+        </thead>
+        <tbody id="taskTableBody">
+          <!-- JS 渲染 -->
+        </tbody>
+      </table>
+      <!-- 空状态 -->
+      <div class="empty-state" id="emptyState" style="display:none;">
+        <div class="empty-icon">📭</div>
+        <div class="empty-text">暂无任务数据</div>
+        <div class="empty-desc">创建你的第一个图搜寻源任务</div>
+      </div>
+    </div>
+
+    <!-- 分页 -->
+    <div class="pagination-wrap" id="paginationWrap">
+      <span class="pagination-total">共 5 条</span>
+      <div class="pagination-center">
+        <select class="form-input page-size-select" id="pageSize">
+          <option value="10">10条/页</option>
+          <option value="20" selected>20条/页</option>
+          <option value="50">50条/页</option>
+        </select>
+        <div class="pagination-nav" id="paginationNav">
+          <button class="page-nav-btn prev" disabled>&lt;</button>
+          <button class="page-nav-btn active">1</button>
+          <button class="page-nav-btn">2</button>
+          <button class="page-nav-btn">3</button>
+          <button class="page-nav-btn next">&gt;</button>
+        </div>
+      </div>
+      <div class="pagination-goto">
+        <span>前往</span>
+        <input type="number" class="goto-input" id="gotoPageInput" min="1" value="1">
+        <span>页</span>
+        <button class="goto-btn" id="gotoPageBtn">GO</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 寻源结果 ===== -->
+  <section class="page-panel" id="page-result">
+    <!-- 寻源结果页头 -->
+    <div class="result-page-header" id="resultPageHeader">
+      <button class="result-back-btn" onclick="goListPage()">‹ 返回</button>
+      <h2 class="result-page-title">寻源结果</h2>
+    </div>
+
+    <div class="result-filter-panel" id="resultFilterPanel">
+      <div class="result-filter-group">
+        <span class="result-filter-label">交易条件<span class="result-filter-mode">多选</span></span>
+        <label class="result-filter-option"><input type="checkbox" data-filter="trade" value="one">一件起订</label>
+        <label class="result-filter-option"><input type="checkbox" data-filter="trade" value="free">批发包邮</label>
+      </div>
+      <div class="result-filter-group">
+        <span class="result-filter-label">公司类型<span class="result-filter-mode">单选</span></span>
+        <label class="result-filter-option"><input type="radio" name="companyFilter" data-filter="company" value="store">店铺</label>
+        <label class="result-filter-option"><input type="radio" name="companyFilter" data-filter="company" value="factory">工厂</label>
+      </div>
+      <div class="result-filter-group">
+        <span class="result-filter-label">卖家会员类型<span class="result-filter-mode">多选</span></span>
+        <label class="result-filter-option"><input type="checkbox" data-filter="member" value="flagship">源头旗舰</label>
+        <label class="result-filter-option"><input type="checkbox" data-filter="member" value="super-factory">超级工厂</label>
+        <label class="result-filter-option"><input type="checkbox" data-filter="member" value="诚信通">仅诚信通</label>
+      </div>
+    </div>
+
+    <!-- 排序方式 -->
+    <div class="result-sort-bar">
+      <span class="result-sort-label">排序方式：</span>
+      <div class="result-sort-options" id="resultSortOptions">
+        <label class="result-sort-option active"><input type="radio" name="resultSort" value="match" checked><span>匹配度优先</span></label>
+        <label class="result-sort-option"><input type="radio" name="resultSort" value="price"><span>低价优先</span></label>
+        <label class="result-sort-option"><input type="radio" name="resultSort" value="sales"><span>高销量优先</span></label>
+      </div>
+    </div>
+    <!-- 结果工具栏：左侧全选+操作，右侧结果数量 -->
+    <div class="result-toolbar result-toolbar-reference">
+      <div class="result-toolbar-left">
+        <label class="result-select-all">
+          <input type="checkbox" id="resultSelectAll">
+          <span>全选全部</span>
+        </label>
+        <span class="result-selected-count">已选: <b id="resultSelectedCount">0</b></span>
+        <div class="result-toolbar-actions">
+          <button class="btn btn-default btn-sm" onclick="showToast('已关注选中商品')">关注商品</button>
+          <button class="btn btn-default btn-sm" onclick="openExportModal(this, event)">导出</button>
+        </div>
+      </div>
+      <div class="result-toolbar-right">
+        <span class="result-count">搜索图片数量：20</span>
+      </div>
+    </div>
+
+    <!-- 结果布局：每行左侧上传图源 + 右侧该图片的商品网格 -->
+    <div class="result-layout-wrapper" id="resultLayoutWrapper">
+      <div class="result-rows" id="resultRows"></div>
+    </div>
+
+    <!-- 空状态 -->
+    <div class="result-empty" id="resultEmpty" style="display:none;">
+      <div class="result-empty-icon">📭</div>
+      <div class="result-empty-title">暂未找到匹配的货源商品</div>
+      <div class="result-empty-desc">
+        您可以点击右侧【<b class="result-empty-action">全网图搜</b>】继续查找；若您有同款图片，请联系客服为您查找匹配失败原因。
+      </div>
+    </div>
+
+    <!-- 分页 -->
+    <div class="pagination-wrap" id="resultPaginationWrap">
+      <span class="pagination-total" id="resultPaginationTotal">共 0 条</span>
+      <div class="pagination-center">
+        <select class="form-input page-size-select" id="resultPageSize">
+          <option value="10">10条/页</option>
+          <option value="20" selected>20条/页</option>
+          <option value="50">50条/页</option>
+        </select>
+        <div class="pagination-nav" id="resultPaginationNav"></div>
+      </div>
+      <div class="pagination-goto">
+        <span>前往</span>
+        <input type="number" class="goto-input" id="resultGotoPageInput" min="1" value="1">
+        <span>页</span>
+        <button class="goto-btn" id="resultGotoPageBtn">GO</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 套餐配置 -->
+  <section class="page-panel" id="page-package">
+    <div class="section-header">
+      <h2 class="section-title">套餐配置</h2>
+    </div>
+    <div class="package-config-section">
+      <div class="package-config-tabs">
+        <button class="pkg-tab-btn" data-pkg-tab="top-nav">顶部导航栏</button>
+        <button class="pkg-tab-btn" data-pkg-tab="side-nav">店雷达左侧导航</button>
+        <button class="pkg-tab-btn active" data-pkg-tab="1688-member">1688会员购买</button>
+        <button class="pkg-tab-btn" data-pkg-tab="ozon-member">OZON会员购买</button>
+        <button class="pkg-tab-btn" data-pkg-tab="backend-create">后台创建图搜寻源套餐</button>
+        <button class="pkg-tab-btn" data-pkg-tab="1688-manage">1688套餐管理</button>
+        <button class="pkg-tab-btn" data-pkg-tab="ozon-manage">OZON套餐管理</button>
+      </div>
+      <div class="package-config-body">
+        <div class="pkg-tab-panel active" data-pkg-panel="1688-member">
+          <img src="assets/tab-1688-member.png?v=1688-member-20260811" alt="1688会员购买" class="pkg-screenshot">
+        </div>
+        <div class="pkg-tab-panel" data-pkg-panel="ozon-member">
+          <img src="assets/tab-ozon-member.png?v=ozon-member-20260811" alt="OZON会员购买" class="pkg-screenshot">
+        </div>
+        <div class="pkg-tab-panel" data-pkg-panel="backend-create">
+          <img src="assets/tab-backend-create.png?v=img-fix-20260807" alt="后台创建图搜寻源套餐" class="pkg-screenshot">
+        </div>
+        <div class="pkg-tab-panel" data-pkg-panel="1688-manage">
+          <img src="assets/tab-1688-manage.png?v=img-fix-20260807" alt="1688套餐管理" class="pkg-screenshot">
+        </div>
+        <div class="pkg-tab-panel" data-pkg-panel="ozon-manage">
+          <img src="assets/tab-ozon-manage.png?v=img-fix-20260807" alt="OZON套餐管理" class="pkg-screenshot">
+        </div>
+        <div class="pkg-tab-panel pkg-side-nav-panel" data-pkg-panel="side-nav">
+          <img src="assets/side-nav-ozon.png?v=side-nav-20260807" alt="店雷达左侧导航-OZON版本" class="pkg-screenshot">
+          <img src="assets/side-nav-cross-border.png?v=side-nav-20260807" alt="店雷达左侧导航-跨境卖家版本" class="pkg-screenshot">
+        </div>
+        <div class="pkg-tab-panel pkg-top-nav-panel" data-pkg-panel="top-nav">
+          <div class="pkg-sub-tabs">
+            <button class="pkg-sub-tab-btn active" data-pkg-sub="1688">1688选品</button>
+            <button class="pkg-sub-tab-btn" data-pkg-sub="ozon">OZON选品</button>
+          </div>
+          <div class="pkg-sub-panels">
+            <div class="pkg-sub-panel active" data-pkg-sub-panel="1688">
+              <img src="assets/tab-topnav-ozon.png?v=topnav-20260811" alt="顶部导航栏-1688选品" class="pkg-screenshot">
+            </div>
+            <div class="pkg-sub-panel" data-pkg-sub-panel="ozon">
+              <img src="assets/tab-topnav-1688.png?v=topnav-20260811" alt="顶部导航栏-OZON选品" class="pkg-screenshot">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<!-- 编辑工具栏 -->
+<div class="edit-toolbar">
+  <button class="edit-btn primary" id="editModeBtn">编辑模式</button>
+  <button class="edit-btn" id="resetEditBtn" disabled>重置修改</button>
+</div>
+
+<!-- 删除确认浮窗 -->
+<div class="delete-float-modal" id="deleteFloatModal">
+  <div class="delete-float-backdrop" onclick="cancelDelete()"></div>
+  <div class="delete-float-content">
+    <div class="delete-float-body">
+      <div class="delete-float-icon">⚠️</div>
+      <div class="delete-float-text">确定要删除此任务吗？</div>
+    </div>
+    <div class="delete-float-actions">
+      <button class="btn btn-default" onclick="cancelDelete()">取消</button>
+      <button class="btn btn-danger" onclick="confirmDeleteAction()">确定删除</button>
+    </div>
+  </div>
+</div>
+
+<!-- 导出配置浮层 -->
+<div class="export-modal" id="exportModal">
+  <div class="export-content">
+    <div class="export-header">
+      <h3 class="export-title">导出寻源结果</h3>
+      <button class="export-close" onclick="closeExportModal()">✕</button>
+    </div>
+    <div class="export-body">
+      <div class="export-option-group">
+        <div class="export-option-title">寻源结果数量</div>
+        <label class="export-radio-option"><input type="radio" name="exportCount" value="1" checked><span>1个</span></label>
+        <label class="export-radio-option"><input type="radio" name="exportCount" value="2"><span>2个</span></label>
+        <label class="export-radio-option"><input type="radio" name="exportCount" value="3"><span>3个</span></label>
+        <label class="export-radio-option"><input type="radio" name="exportCount" value="4"><span>4个</span></label>
+      </div>
+    </div>
+    <div class="export-footer">
+      <button class="btn btn-default" onclick="closeExportModal()">取消</button>
+      <button class="btn btn-primary" onclick="confirmExport()">确认导出</button>
+    </div>
+  </div>
+</div>
+
+<!-- 支付页面弹窗 -->
+<div class="payment-modal" id="paymentModal">
+  <div class="payment-backdrop" onclick="closePaymentModal()"></div>
+  <div class="payment-content">
+    <div class="payment-header">
+      <h3 class="payment-title">确认支付</h3>
+      <button class="payment-close" onclick="closePaymentModal()">✕</button>
+    </div>
+    <div class="payment-body">
+      <div class="payment-order">
+        <div class="payment-order-row"><span class="payment-label">订单编号</span><span class="payment-value" id="payOrderId">DLDD202608060001</span></div>
+        <div class="payment-order-row"><span class="payment-label">任务名称</span><span class="payment-value" id="payTaskName">-</span></div>
+        <div class="payment-order-row"><span class="payment-label">商品数量</span><span class="payment-value" id="payItemCount">0 件</span></div>
+        <div class="payment-order-row"><span class="payment-label">单价</span><span class="payment-value">¥0.02 / 件</span></div>
+      </div>
+      <div class="payment-amount-box">
+        <span class="payment-amount-label">应付金额</span>
+        <span class="payment-amount" id="payAmount">¥0.00</span>
+      </div>
+      <div class="payment-methods">
+        <div class="payment-method-title">支付方式</div>
+        <div class="payment-method-list">
+          <label class="payment-method-item active">
+            <input type="radio" name="payMethod" value="alipay" checked>
+            <span class="method-icon alipay">支</span>
+            <span class="method-name">支付宝</span>
+          </label>
+          <label class="payment-method-item">
+            <input type="radio" name="payMethod" value="wechat">
+            <span class="method-icon wechat">微</span>
+            <span class="method-name">微信支付</span>
+          </label>
+          <label class="payment-method-item">
+            <input type="radio" name="payMethod" value="bank">
+            <span class="method-icon bank">银</span>
+            <span class="method-name">银行卡</span>
+          </label>
+          <label class="payment-method-item">
+            <input type="radio" name="payMethod" value="card">
+            <span class="method-icon bank">卡</span>
+            <span class="method-name">信用卡</span>
+          </label>
+        </div>
+      </div>
+      <div class="payment-qr" id="paymentQr">
+        <div class="qr-placeholder" id="qrPlaceholder">扫码支付</div>
+        <div class="qr-tips">请使用 <b id="qrMethodName">支付宝</b> 扫描二维码完成支付</div>
+      </div>
+    </div>
+    <div class="payment-footer">
+      <button class="btn btn-default" onclick="closePaymentModal()">取消</button>
+      <button class="btn btn-primary" id="confirmPayBtn">确认支付</button>
+    </div>
+  </div>
+</div>
+
+<!-- 增购张数弹窗 -->
+<div class="purchase-modal" id="purchaseModal">
+  <div class="purchase-backdrop" onclick="closePurchaseModal()"></div>
+  <div class="purchase-content">
+    <div class="purchase-header">
+      <h3 class="purchase-title">增购寻源张数</h3>
+      <button class="purchase-close" onclick="closePurchaseModal()">✕</button>
+    </div>
+    <div class="purchase-body">
+      <div class="purchase-current">
+        当前剩余：<b id="purchaseCurrentCredits">2</b> 张
+      </div>
+      <div class="purchase-options">
+        <div class="purchase-option" data-count="1000" onclick="selectPurchaseOption(this, 1000)">
+          <div class="option-count">1,000 张</div>
+          <div class="option-price">¥20.00</div>
+        </div>
+        <div class="purchase-option" data-count="5000" onclick="selectPurchaseOption(this, 5000)">
+          <div class="option-count">5,000 张</div>
+          <div class="option-price">¥100.00</div>
+        </div>
+        <div class="purchase-option" data-count="10000" onclick="selectPurchaseOption(this, 10000)">
+          <div class="option-count">10,000 张</div>
+          <div class="option-price">¥200.00</div>
+        </div>
+        <div class="purchase-option" data-count="50000" onclick="selectPurchaseOption(this, 50000)">
+          <div class="option-count">50,000 张</div>
+          <div class="option-price">¥1,000.00</div>
+        </div>
+        <div class="purchase-option" data-count="100000" onclick="selectPurchaseOption(this, 100000)">
+          <div class="option-count">100,000 张</div>
+          <div class="option-price">¥2,000.00</div>
+        </div>
+        <div class="purchase-option" data-count="200000" onclick="selectPurchaseOption(this, 200000)">
+          <div class="option-count">200,000 张</div>
+          <div class="option-price">¥4,000.00</div>
+        </div>
+      </div>
+      <div class="purchase-notice">
+        <div class="purchase-notice-title">增购说明</div>
+        <div class="purchase-notice-text">增购寻源张数【仅支持1688或OZON会员有效期内使用】到期后可不使用剩余张数；不支持退款、兑换套餐、转赠或提现！</div>
+      </div>
+    </div>
+    <div class="purchase-footer">
+      <div class="purchase-summary">
+        <span>购买数量：<b id="purchaseSelectedCount">0</b> 张</span>
+        <span>应付金额：<b class="purchase-amount" id="purchaseTotalAmount">¥0.00</b></span>
+      </div>
+      <button class="btn btn-default" onclick="closePurchaseModal()">取消</button>
+      <button class="btn btn-primary" id="confirmPurchaseBtn" disabled>立即购买</button>
+    </div>
+  </div>
+</div>
+
+<!-- 任务详情弹窗（只读） -->
+<div class="detail-modal" id="detailModal">
+  <div class="detail-backdrop" onclick="closeDetailModal()"></div>
+  <div class="detail-content">
+    <div class="detail-header">
+      <div class="detail-header-left">
+        <h3 class="detail-title">任务详情</h3>
+        <span class="detail-sub">只读视图，所有字段不可编辑</span>
+      </div>
+      <button class="detail-close" onclick="closeDetailModal()" aria-label="关闭">✕</button>
+    </div>
+    <div class="detail-body">
+      <!-- 基本信息 -->
+      <section class="detail-section">
+        <div class="detail-section-title">基本信息</div>
+        <div class="detail-info-grid">
+          <div class="detail-info-item">
+            <span class="detail-info-label">任务名称</span>
+            <span class="detail-info-value" id="detailName">—</span>
+          </div>
+          <div class="detail-info-item">
+            <span class="detail-info-label">图搜方式</span>
+            <span class="detail-info-value" id="detailType">—</span>
+          </div>
+          <div class="detail-info-item">
+            <span class="detail-info-label">任务状态</span>
+            <span class="detail-info-value" id="detailStatus">—</span>
+          </div>
+          <div class="detail-info-item">
+            <span class="detail-info-label">张数统计</span>
+            <span class="detail-info-value" id="detailCount">—</span>
+          </div>
+          <div class="detail-info-item detail-info-wide">
+            <span class="detail-info-label">创建时间</span>
+            <span class="detail-info-value" id="detailTime">—</span>
+          </div>
+          <div class="detail-info-item detail-info-wide">
+            <span class="detail-info-label">完成时间</span>
+            <span class="detail-info-value" id="detailFinishTime">—</span>
+          </div>
+          <div class="detail-info-item detail-info-wide">
+            <span class="detail-info-label">执行进度</span>
+            <div class="detail-progress-wrap">
+              <div class="detail-progress"><div class="detail-progress-fill" id="detailProgressBar" style="width:0%"></div></div>
+              <span class="detail-progress-text" id="detailProgressText">—</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 图源列表 -->
+      <section class="detail-section">
+        <div class="detail-section-title">
+          图源列表
+          <span class="detail-readonly-tag">只读</span>
+        </div>
+        <div class="detail-source-list" id="detailSourceGrid">
+          <!-- JS 动态填充 -->
+        </div>
+      </section>
+    </div>
+    <div class="detail-footer">
+      <button class="btn btn-default" onclick="closeDetailModal()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script src="ai-three-step.js?v=2026081118"></script>
+</body>
+</html>
