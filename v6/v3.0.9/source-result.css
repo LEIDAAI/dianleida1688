@@ -4,14 +4,6 @@
 .source-result-page .result-filter-card .result-filter-group{border:0;padding:0;gap:8px 12px;align-content:start}
 .source-result-page .result-filter-card .result-range-panel{display:grid;grid-template-columns:1fr 1fr 1.2fr;background:transparent;border:0;border-top:1px solid #f0f2f5;border-radius:0;box-shadow:none;gap:20px 32px;padding:18px 0 0;margin:18px 0 0}
 .source-result-page .result-filter-card .result-range-inputs input{width:clamp(64px,6vw,112px)}
-.source-result-page .result-filter-summary{align-items:center;display:flex;flex-wrap:wrap;gap:8px 10px;margin:14px 0 0}
-.source-result-page .summary-label{color:#9aa3b2;font-size:12px}
-.source-result-page .summary-chips{display:flex;flex-wrap:wrap;gap:8px}
-.source-result-page .summary-chip{align-items:center;background:#fff5ed;border:1px solid #ffd9bd;border-radius:999px;color:#e55d00;display:inline-flex;font-size:12px;gap:6px;line-height:22px;padding:0 6px 0 10px}
-.source-result-page .summary-chip button{background:none;border:0;color:#e55d00;cursor:pointer;font-size:14px;line-height:1;padding:0 2px}
-.source-result-page .summary-chip button:hover{color:#b34700}
-.source-result-page .summary-clear{background:none;border:0;color:#5a5a7a;cursor:pointer;font-size:12px;padding:0 4px;text-decoration:underline}
-.source-result-page .summary-clear:hover{color:#ff6a00}
 .source-result-page .result-filter-card .result-range-field{gap:12px}
 .source-result-page .result-filter-card .result-range-actions{margin-left:auto}
 .source-result-page .result-filter-card .result-filter-error{margin:12px 0 0}
